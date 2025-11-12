@@ -8,7 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.24324.3" />
+        <!-- Reference the Dagger SDK from the generated sdk folder -->
+        <Reference Include="sdk/Dagger.SDK.dll" />
     </ItemGroup>
 
 </Project>

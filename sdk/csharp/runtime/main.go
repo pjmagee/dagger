@@ -81,70 +81,69 @@ func (m *CsharpSdk) CodegenBase(
 		WithoutDirectory(filepath.Join(subPath, "obj")).
 		WithoutDirectory(filepath.Join(subPath, GenPath))
 
-	// Mount the SDK source code
+	// Build the SDK with introspection
 	ctr := base.
-		WithDirectory("/sdk", m.SourceDir).
-		WithWorkdir("/sdk")
+		WithDirectory("/sdk-src", m.SourceDir).
+		WithMountedFile("/schema.json", introspectionJSON).
+		WithWorkdir("/sdk-src/src").
+		WithExec([]string{"dotnet", "build", "-c", "Release"})
 
-	// Copy introspection.json for code generation
-	ctr = ctr.
-		WithMountedFile("/schema.json", introspectionJSON)
-
-	// Mount the template files
-	ctr = ctr.
-		WithMountedDirectory("/opt/template", runtime.Directory("template"))
+	// Get the built SDK DLLs
+	sdkBuild := ctr.Directory("/sdk-src/src/Dagger.SDK/bin/Release/net9.0")
 
 	// Mount the module source directory
-	ctr = ctr.
+	ctr = base.
 		WithMountedDirectory(ModSourcePath, ctxDir).
 		WithWorkdir(srcPath)
 
-	// Copy SDK to module location
+	// Copy SDK DLLs to module's sdk folder
 	ctr = ctr.
-		WithDirectory(sdkPath, ctr.Directory("/sdk/src"))
+		WithDirectory(sdkPath, sdkBuild)
 
 	// Initialize module if needed (copy template files)
-	// Check if Main.cs exists, if not copy from template
 	entries, err := ctr.Directory(srcPath).Entries(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// If no Main.cs, initialize from template
+	// Check if this is a new module (no Main.cs or Program.cs)
 	hasMainCs := false
+	hasProgramCs := false
+	hasProjectFile := false
 	for _, entry := range entries {
 		if entry == "Main.cs" {
 			hasMainCs = true
-			break
+		}
+		if entry == "Program.cs" {
+			hasProgramCs = true
+		}
+		if entry == "DaggerModule.csproj" || entry == name+".csproj" {
+			hasProjectFile = true
 		}
 	}
 
-	if !hasMainCs {
-		// Copy template Main.cs and rename class
+	// If this is a new module, copy template files
+	if !hasMainCs && !hasProgramCs && !hasProjectFile {
 		ctr = ctr.
+			WithFile("Main.cs", runtime.File("template/Main.cs")).
+			WithFile("Program.cs", runtime.File("template/Program.cs")).
+			WithFile("DaggerModule.csproj", runtime.File("template/DaggerModule.csproj")).
 			WithExec([]string{"sh", "-c", fmt.Sprintf(
-				"cp /opt/template/Main.cs . && sed -i 's/DaggerModule/%s/g' Main.cs",
+				"sed -i 's/DaggerModule/%s/g' Main.cs",
 				name,
 			)})
 	}
 
-	// Copy entrypoint
+	// Build the user's module
 	ctr = ctr.
-		WithDirectory("Entrypoint", runtime.Directory("template/Entrypoint"))
+		WithExec([]string{"dotnet", "build", "-c", "Release"})
 
-	// Restore and build the module
-	ctr = ctr.
-		WithExec([]string{"dotnet", "restore"}).
-		WithExec([]string{"dotnet", "build", "--no-restore", "-c", "Release"})
-
-	// Set the entrypoint to the compiled executable
-	// The entrypoint will be called by Dagger to execute module functions
+	// Set the entrypoint to run the user's compiled program
+	// The Program.cs bootstraps the ModuleRuntime from the SDK
 	ctr = ctr.
 		WithEntrypoint([]string{
 			"dotnet",
 			"run",
-			"--project",
-			"Entrypoint/Entrypoint.csproj",
 			"--no-build",
 			"-c",
 			"Release",
