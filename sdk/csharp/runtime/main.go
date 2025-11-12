@@ -72,12 +72,6 @@ func (m *CsharpSdk) CodegenBase(
 		WithExec([]string{"apt-get", "update"}).
 		WithExec([]string{"apt-get", "install", "-y", "git"})
 
-	// For now, this is a minimal implementation
-	// TODO: Implement actual C# codegen
-	ctr := base.
-		WithDirectory("/sdk", m.SourceDir).
-		WithWorkdir("/sdk")
-
 	srcPath := filepath.Join(ModSourcePath, subPath)
 	sdkPath := filepath.Join(srcPath, GenPath)
 	runtime := dag.CurrentModule().Source()
@@ -87,17 +81,75 @@ func (m *CsharpSdk) CodegenBase(
 		WithoutDirectory(filepath.Join(subPath, "obj")).
 		WithoutDirectory(filepath.Join(subPath, GenPath))
 
-	// Mount the module directory
+	// Mount the SDK source code
+	ctr := base.
+		WithDirectory("/sdk", m.SourceDir).
+		WithWorkdir("/sdk")
+
+	// Copy introspection.json for code generation
+	ctr = ctr.
+		WithMountedFile("/schema.json", introspectionJSON)
+
+	// Mount the template files
+	ctr = ctr.
+		WithMountedDirectory("/opt/template", runtime.Directory("template"))
+
+	// Mount the module source directory
 	ctr = ctr.
 		WithMountedDirectory(ModSourcePath, ctxDir).
-		WithWorkdir(srcPath).
-		WithEntrypoint([]string{"dotnet", "run"})
+		WithWorkdir(srcPath)
 
-	// TODO: Add codegen and restore logic
-	_ = name
-	_ = sdkPath
-	_ = runtime
-	_ = introspectionJSON
+	// Copy SDK to module location
+	ctr = ctr.
+		WithDirectory(sdkPath, ctr.Directory("/sdk/src"))
+
+	// Initialize module if needed (copy template files)
+	// Check if Main.cs exists, if not copy from template
+	entries, err := ctr.Directory(srcPath).Entries(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// If no Main.cs, initialize from template
+	hasMainCs := false
+	for _, entry := range entries {
+		if entry == "Main.cs" {
+			hasMainCs = true
+			break
+		}
+	}
+
+	if !hasMainCs {
+		// Copy template Main.cs and rename class
+		ctr = ctr.
+			WithExec([]string{"sh", "-c", fmt.Sprintf(
+				"cp /opt/template/Main.cs . && sed -i 's/DaggerModule/%s/g' Main.cs",
+				name,
+			)})
+	}
+
+	// Copy entrypoint
+	ctr = ctr.
+		WithDirectory("Entrypoint", runtime.Directory("template/Entrypoint"))
+
+	// Restore and build the module
+	ctr = ctr.
+		WithExec([]string{"dotnet", "restore"}).
+		WithExec([]string{"dotnet", "build", "--no-restore", "-c", "Release"})
+
+	// Set the entrypoint to the compiled executable
+	// The entrypoint will be called by Dagger to execute module functions
+	ctr = ctr.
+		WithEntrypoint([]string{
+			"dotnet",
+			"run",
+			"--project",
+			"Entrypoint/Entrypoint.csproj",
+			"--no-build",
+			"-c",
+			"Release",
+			"--",
+		})
 
 	return ctr, nil
 }

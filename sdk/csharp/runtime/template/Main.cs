@@ -16,6 +16,9 @@ namespace DaggerModule;
 /// The first line in this comment block is a short description line and the
 /// rest is a long description with more detail on the module's purpose or usage,
 /// if appropriate. All modules should have a short description.
+/// 
+/// Note: The Dagger engine will execute this module by calling the Entrypoint
+/// executable, which discovers and invokes the functions marked with [DaggerFunction].
 /// </summary>
 [DaggerObject]
 public class DaggerModule

@@ -73,12 +73,16 @@ public class MyModule
 }
 ```
 
+The Dagger engine executes your module via the `Entrypoint` executable:
+- **Registration** (`--register` flag): Introspects your module and returns the schema
+- **Execution**: Listens for function calls and invokes the appropriate methods
+
 ### Using the SDK directly
 
 ```csharp
 using Dagger.SDK;
 
-// Connect to Dagger engine
+// Connect to Dagger engine and use the API
 var result = await Dagger.Dag()
     .Container()
     .From("alpine:latest")
@@ -87,6 +91,26 @@ var result = await Dagger.Dag()
 
 Console.WriteLine(result);
 ```
+
+## How It Works
+
+When you create a Dagger module with `dagger init --sdk=csharp`, the runtime:
+
+1. **Sets up the module structure**:
+   - Copies your module code (e.g., `Main.cs`)
+   - Generates the Dagger SDK from introspection
+   - Creates an `Entrypoint` executable
+
+2. **The Entrypoint executable**:
+   - Discovers classes marked with `[DaggerObject]`
+   - Discovers methods marked with `[DaggerFunction]`
+   - Registers the module schema with Dagger (via `--register`)
+   - Executes function calls from the Dagger engine
+
+3. **Execution flow**:
+   ```
+   Dagger Engine → dotnet run Entrypoint → Discovers DaggerModule → Executes functions
+   ```
 
 ## Learn more
 
