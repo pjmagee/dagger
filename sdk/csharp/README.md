@@ -118,6 +118,25 @@ The **ModuleRuntime** (in the SDK) handles:
 - Registration (`--register` flag): Returns module schema
 - Execution: Calls your functions when invoked
 
+## Client API
+
+The Dagger client API is generated at build time by the Source Generator from `introspection.json`. 
+The generated code provides type-safe access to all Dagger API types and methods.
+
+You access the API through the static `Dagger.Dag()` method (defined in the generated code):
+```csharp
+var container = Dagger.Dag()
+    .Container()
+    .From("alpine:latest")
+    .WithExec(new[] { "echo", "hello" });
+```
+
+The Source Generator (`Dagger.SDK.CodeGen`) reads the GraphQL schema and generates:
+- All Dagger types (Container, Directory, File, etc.)
+- Query methods
+- Type-safe method chaining
+- Proper async/await support
+
 ## Learn more
 
 - [Documentation](https://docs.dagger.io/sdk/csharp)
