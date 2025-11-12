@@ -18,14 +18,14 @@ func (t CsharpSDK) Name() string {
 func (t CsharpSDK) Lint(ctx context.Context) (MyCheckStatus, error) {
 	src := t.Dagger.Source.Directory("sdk/csharp")
 	return CheckCompleted, dag.
-		CsharpSDKDev(dagger.CsharpSDKDevOpts{Source: src}).
+		CsharpSdkDev(dagger.CsharpSdkDevOpts{Source: src}).
 		Lint(ctx)
 }
 
 func (t CsharpSDK) Test(ctx context.Context) (MyCheckStatus, error) {
 	src := t.Dagger.Source.Directory("sdk/csharp")
 	return CheckCompleted, dag.
-		CsharpSDKDev(dagger.CsharpSDKDevOpts{Source: src}).
+		CsharpSdkDev(dagger.CsharpSdkDevOpts{Source: src}).
 		Test(ctx, t.Dagger.introspectionJSON())
 }
 
@@ -34,7 +34,7 @@ func (t CsharpSDK) Generate(ctx context.Context) (*dagger.Changeset, error) {
 	src := t.Dagger.Source.Directory("sdk/csharp")
 
 	relLayer := dag.
-		CsharpSDKDev(dagger.CsharpSDKDevOpts{Source: src}).
+		CsharpSdkDev(dagger.CsharpSdkDevOpts{Source: src}).
 		Generate(t.Dagger.introspectionJSON())
 	absLayer := dag.Directory().WithDirectory("sdk/csharp", relLayer)
 	return absLayer.Changes(dag.Directory()).Sync(ctx)
