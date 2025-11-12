@@ -33,15 +33,59 @@ dotnet add package Dagger.SDK
 
 ## Example
 
-Create a `Program.cs` file:
+### Using Dagger Functions
+
+Create a module with Dagger functions:
+
+```csharp
+using Dagger.SDK;
+
+[DaggerObject]
+public class MyModule
+{
+    /// <summary>
+    /// Returns a container that echoes a message
+    /// </summary>
+    [DaggerFunction]
+    public Container Echo(string message)
+    {
+        return Dagger.Dag()
+            .Container()
+            .From("alpine:latest")
+            .WithExec(new[] { "echo", message });
+    }
+
+    /// <summary>
+    /// Builds and tests a Go project
+    /// </summary>
+    [DaggerFunction]
+    public async Task<string> BuildAndTest(Directory source)
+    {
+        return await Dagger.Dag()
+            .Container()
+            .From("golang:1.21")
+            .WithMountedDirectory("/src", source)
+            .WithWorkdir("/src")
+            .WithExec(new[] { "go", "build", "./..." })
+            .WithExec(new[] { "go", "test", "./..." })
+            .Stdout();
+    }
+}
+```
+
+### Using the SDK directly
 
 ```csharp
 using Dagger.SDK;
 
 // Connect to Dagger engine
-var client = await Client.ConnectAsync();
+var result = await Dagger.Dag()
+    .Container()
+    .From("alpine:latest")
+    .WithExec(new[] { "echo", "Hello from Dagger!" })
+    .Stdout();
 
-// TODO: Add example usage when SDK is implemented
+Console.WriteLine(result);
 ```
 
 ## Learn more

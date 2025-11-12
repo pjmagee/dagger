@@ -5,7 +5,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Dagger.SDK.CodeGen\Dagger.SDK.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="introspection.json" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
