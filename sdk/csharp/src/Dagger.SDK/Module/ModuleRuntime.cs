@@ -111,10 +111,10 @@ public static class ModuleRuntime
         // 4. Instantiate the object (calling constructor if needed)
         // 5. Invoke the method with deserialized arguments
         // 6. Serialize and return the result
-        
+
         Console.Error.WriteLine("Module serving mode not yet fully implemented");
         Console.Error.WriteLine("This requires integration with the Dagger API (dag.CurrentFunctionCall(), etc.)");
-        
+
         await Task.CompletedTask;
         return 0;
     }

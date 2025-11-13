@@ -15,7 +15,8 @@ public class GraphQLClient
         : this(
             Environment.GetEnvironmentVariable("DAGGER_SESSION_PORT")!,
             Environment.GetEnvironmentVariable("DAGGER_SESSION_TOKEN")!
-        ) { }
+        )
+    { }
 
     public GraphQLClient(
         string port,
