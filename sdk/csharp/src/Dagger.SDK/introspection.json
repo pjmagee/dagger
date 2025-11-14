@@ -1,0 +1,11 @@
+{
+  "__schema": {
+    "queryType": {
+      "name": "Query"
+    },
+    "mutationType": null,
+    "subscriptionType": null,
+    "types": [],
+    "directives": []
+  }
+}
