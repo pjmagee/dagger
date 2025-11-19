@@ -33,32 +33,35 @@ func (t PHPSDK) Source() *dagger.Directory {
 
 func (t PHPSDK) Lint(ctx context.Context) error {
 	return parallel.New().
-		WithJob("PHP CodeSniffer", t.PhpCodeSniffer).
-		WithJob("PHPStan", t.PhpStan).
+		WithJob("PHP CodeSniffer", func(ctx context.Context) error {
+			_, err := t.PhpCodeSniffer(ctx)
+			return err
+		}).
+		WithJob("PHPStan", func(ctx context.Context) error {
+			_, err := t.PhpStan(ctx)
+			return err
+		}).
 		Run(ctx)
 }
 
 // Lint the PHP code with PHP CodeSniffer (https://github.com/squizlabs/PHP_CodeSniffer)
-// +check
-func (t PHPSDK) PhpCodeSniffer(ctx context.Context) error {
+func (t PHPSDK) PhpCodeSniffer(ctx context.Context) (MyCheckStatus, error) {
 	_, err := dag.PhpSDKDev(dagger.PhpSDKDevOpts{Source: t.Source()}).
 		Lint().
 		Sync(ctx)
-	return err
+	return CheckCompleted, err
 }
 
 // Analyze the PHP code with PHPStan (https://phpstan.org)
-// +check
-func (t PHPSDK) PhpStan(ctx context.Context) error {
+func (t PHPSDK) PhpStan(ctx context.Context) (MyCheckStatus, error) {
 	_, err := dag.PhpSDKDev(dagger.PhpSDKDevOpts{Source: t.Source()}).
 		Analyze().
 		Sync(ctx)
-	return err
+	return CheckCompleted, err
 }
 
 // Test the PHP SDK
-// +check
-func (t PHPSDK) Test(ctx context.Context) error {
+func (t PHPSDK) Test(ctx context.Context) (MyCheckStatus, error) {
 	base := dag.PhpSDKDev().Base().
 		With(t.Dagger.devEngineSidecar()).
 		WithEnvVariable("PATH", "./vendor/bin:$PATH", dagger.ContainerWithEnvVariableOpts{Expand: true})
@@ -66,9 +69,9 @@ func (t PHPSDK) Test(ctx context.Context) error {
 	dev := dag.PhpSDKDev(dagger.PhpSDKDevOpts{Container: base, Source: t.Source()})
 	_, err := dev.Test().Sync(ctx)
 	if err != nil {
-		return err
+		return CheckCompleted, err
 	}
-	return nil
+	return CheckCompleted, nil
 }
 
 // Regenerate the PHP SDK API + docs
@@ -143,9 +146,8 @@ func (t PHPSDK) doctumConfig() *dagger.File {
 }
 
 // Test the publishing process
-// +check
-func (t PHPSDK) ReleaseDryRun(ctx context.Context) error {
-	return t.Publish(ctx, "HEAD", true, "https://github.com/dagger/dagger-php-sdk.git", nil)
+func (t PHPSDK) ReleaseDryRun(ctx context.Context) (MyCheckStatus, error) {
+	return CheckCompleted, t.Publish(ctx, "HEAD", true, "https://github.com/dagger/dagger-php-sdk.git", nil)
 }
 
 // Publish the PHP SDK

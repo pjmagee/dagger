@@ -1,6 +1,3 @@
-"""Indicates that this function is a check."""
-directive @check on FIELD_DEFINITION
-
 """Indicates that the argument defaults to a contextual path."""
 directive @defaultPath(path: String!) on ARGUMENT_DEFINITION
 
@@ -285,6 +282,12 @@ scalar CheckGroupID
 The `CheckID` scalar type represents an identifier for an object of type Check.
 """
 scalar CheckID
+
+"""The result of a check."""
+enum CheckStatus {
+  COMPLETED
+  SKIPPED
+}
 
 """Dagger Cloud configuration and state"""
 type Cloud {
@@ -3043,9 +3046,6 @@ type Function {
     """
     timeToLive: String
   ): Function!
-
-  """Returns the function with a flag indicating it's a check."""
-  withCheck: Function!
 
   """Returns the function with the provided deprecation reason."""
   withDeprecated(

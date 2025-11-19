@@ -22,7 +22,6 @@ class FunctionDefinition:
     doc: str | None = None
     cache: str | None = None
     deprecated: str | None = None
-    check: bool = False
 
 
 class Enum(str, base.Enum):

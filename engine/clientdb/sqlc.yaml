@@ -7,4 +7,3 @@ sql:
       go:
         package: "clientdb"
         out: "."
-        emit_prepared_queries: true

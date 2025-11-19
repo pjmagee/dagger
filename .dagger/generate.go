@@ -10,10 +10,9 @@ import (
 )
 
 // Verify that generated code is up to date
-// +check
-func (dev *DaggerDev) CheckGenerated(ctx context.Context) error {
+func (dev *DaggerDev) CheckGenerated(ctx context.Context) (MyCheckStatus, error) {
 	_, err := dev.Generate(ctx, true)
-	return err
+	return CheckCompleted, err
 }
 
 // Run all code generation - SDKs, docs, grpc stubs, changelog

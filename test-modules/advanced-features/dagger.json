@@ -1,0 +1,7 @@
+{
+  "name": "advanced-features",
+  "engineVersion": "v0.19.6",
+  "sdk": {
+    "source": "../../sdk/csharp/runtime"
+  }
+}

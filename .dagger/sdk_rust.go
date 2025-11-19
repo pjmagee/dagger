@@ -28,31 +28,28 @@ func (r RustSDK) Name() string {
 	return "rust"
 }
 
-// +check
-func (r RustSDK) CheckFormat(ctx context.Context) error {
+func (r RustSDK) CheckFormat(ctx context.Context) (MyCheckStatus, error) {
 	_, err := r.DevContainer().
 		WithExec([]string{"cargo", "fmt", "--check"}).
 		Sync(ctx)
-	return err
+	return CheckCompleted, err
 }
 
-// +check
-func (r RustSDK) CheckCompilation(ctx context.Context) error {
+func (r RustSDK) CheckCompilation(ctx context.Context) (MyCheckStatus, error) {
 	_, err := r.DevContainer().
 		WithExec([]string{"cargo", "check", "--all", "--release"}).
 		Sync(ctx)
-	return err
+	return CheckCompleted, err
 }
 
 // Test the Rust SDK
-// +check
-func (r RustSDK) Test(ctx context.Context) error {
+func (r RustSDK) Test(ctx context.Context) (MyCheckStatus, error) {
 	_, err := r.DevContainer().
 		With(r.Dagger.devEngineSidecar()).
 		WithExec([]string{"rustc", "--version"}).
 		WithExec([]string{"cargo", "test", "--release", "--all"}).
 		Sync(ctx)
-	return err
+	return CheckCompleted, err
 }
 
 func (r RustSDK) Source() *dagger.Directory {
@@ -79,9 +76,8 @@ func (r RustSDK) Generate(_ context.Context) (*dagger.Changeset, error) {
 }
 
 // Test the publishing process
-// +check
-func (r RustSDK) ReleaseDryRun(ctx context.Context) error {
-	return r.Publish(ctx, "HEAD", true, nil)
+func (r RustSDK) ReleaseDryRun(ctx context.Context) (MyCheckStatus, error) {
+	return CheckCompleted, r.Publish(ctx, "HEAD", true, nil)
 }
 
 // Publish the Rust SDK

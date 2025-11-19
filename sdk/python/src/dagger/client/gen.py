@@ -304,6 +304,14 @@ class CacheSharingMode(Enum):
     """Shares the cache volume amongst many build pipelines"""
 
 
+class CheckStatus(Enum):
+    """The result of a check."""
+
+    COMPLETED = "COMPLETED"
+
+    SKIPPED = "SKIPPED"
+
+
 class ExistsType(Enum):
     """File type."""
 
@@ -7179,12 +7187,6 @@ class Function(Type):
         _ctx = self._select("withCachePolicy", _args)
         return Function(_ctx)
 
-    def with_check(self) -> Self:
-        """Returns the function with a flag indicating it's a check."""
-        _args: list[Arg] = []
-        _ctx = self._select("withCheck", _args)
-        return Function(_ctx)
-
     def with_deprecated(self, *, reason: str | None = None) -> Self:
         """Returns the function with the provided deprecation reason.
 
@@ -12846,6 +12848,7 @@ __all__ = [
     "CheckGroup",
     "CheckGroupID",
     "CheckID",
+    "CheckStatus",
     "Client",
     "Cloud",
     "CloudID",

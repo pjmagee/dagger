@@ -18,8 +18,7 @@ func (t PythonSDK) Name() string {
 }
 
 // CheckPythonFormat checks the Python code formatting
-// +check
-func (t PythonSDK) Lint(ctx context.Context) error {
+func (t PythonSDK) Lint(ctx context.Context) (MyCheckStatus, error) {
 	// Preserve same file hierarchy for docs because of extend rules in .ruff.toml
 	_, err := dag.PythonSDKDev().
 		WithDirectory(
@@ -36,18 +35,17 @@ func (t PythonSDK) Lint(ctx context.Context) error {
 				),
 		).
 		Lint(ctx, dagger.PythonSDKDevLintOpts{Paths: []string{"../.."}})
-	return err
+	return CheckCompleted, err
 }
 
 // Test the Python SDK
-// +check
-func (t PythonSDK) Test(ctx context.Context) error {
+func (t PythonSDK) Test(ctx context.Context) (MyCheckStatus, error) {
 	base := dag.PythonSDKDev().Container().With(t.Dagger.devEngineSidecar())
 	dev := dag.PythonSDKDev(dagger.PythonSDKDevOpts{Container: base})
 
 	versions, err := dag.PythonSDKDev().SupportedVersions(ctx)
 	if err != nil {
-		return err
+		return CheckCompleted, err
 	}
 	jobs := parallel.New()
 	for _, version := range versions {
@@ -65,7 +63,7 @@ func (t PythonSDK) Test(ctx context.Context) error {
 			},
 		)
 	}
-	return jobs.Run(ctx)
+	return CheckCompleted, jobs.Run(ctx)
 }
 
 // Regenerate the Python SDK API
@@ -115,9 +113,8 @@ func (t PythonSDK) Generate(_ context.Context) (*dagger.Changeset, error) {
 }
 
 // Test the publishing process
-// +check
-func (t PythonSDK) ReleaseDryRun(ctx context.Context) error {
-	return t.Publish(ctx, "HEAD", true, "", nil)
+func (t PythonSDK) ReleaseDryRun(ctx context.Context) (MyCheckStatus, error) {
+	return CheckCompleted, t.Publish(ctx, "HEAD", true, "", nil)
 }
 
 // Publish the Python SDK

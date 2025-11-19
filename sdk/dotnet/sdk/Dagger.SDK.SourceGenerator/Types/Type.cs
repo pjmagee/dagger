@@ -5,16 +5,16 @@ namespace Dagger.SDK.SourceGenerator.Types;
 public class Type
 {
     [JsonPropertyName("description")]
-    public string Description { get; set; } = "";
+    public required string Description { get; set; }
 
     [JsonPropertyName("enumValues")]
-    public EnumValue[] EnumValues { get; set; } = [];
+    public required EnumValue[] EnumValues { get; set; }
 
     [JsonPropertyName("fields")]
-    public Field[] Fields { get; set; } = [];
+    public required Field[] Fields { get; set; }
 
     [JsonPropertyName("inputFields")]
-    public InputValue[] InputFields { get; set; } = [];
+    public required InputValue[] InputFields { get; set; }
 
     [JsonPropertyName("kind")]
     public required string Kind { get; set; }

@@ -35,17 +35,6 @@ func (ps *parseState) parseGoFunc(parentType *types.Named, fn *types.Func) (*fun
 		}
 	}
 
-	if v, ok := docPragmas["check"]; ok {
-		if v == nil {
-			spec.isCheck = true
-		} else {
-			spec.isCheck, ok = v.(bool)
-			if !ok {
-				return nil, fmt.Errorf("check pragma %q, must be a valid boolean", v)
-			}
-		}
-	}
-
 	if v, ok := docPragmas["deprecated"]; ok {
 		if v == nil {
 			spec.deprecated = nil
@@ -125,7 +114,6 @@ type funcTypeSpec struct {
 	doc         string
 	sourceMap   *sourceMap
 	cachePolicy string
-	isCheck     bool
 
 	argSpecs []paramSpec
 
@@ -187,9 +175,6 @@ func (spec *funcTypeSpec) TypeDefFunc(dag *dagger.Client) (*dagger.Function, err
 		fnTypeDef = fnTypeDef.WithDeprecated(dagger.FunctionWithDeprecatedOpts{
 			Reason: strings.TrimSpace(*spec.deprecated),
 		})
-	}
-	if spec.isCheck {
-		fnTypeDef = fnTypeDef.WithCheck()
 	}
 
 	for _, argSpec := range spec.argSpecs {

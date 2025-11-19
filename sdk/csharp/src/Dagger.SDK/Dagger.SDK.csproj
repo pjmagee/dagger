@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Dagger.SDK.CodeGen\Dagger.SDK.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Reference introspection.json located in parent src directory -->
+        <AdditionalFiles Include="..\introspection.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Exclude Module runtime infrastructure from SDK builds -->
+        <!-- These are only used in local development, not distributed -->
+        <Compile Remove="Module\**\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
+    </ItemGroup>
+
+</Project>

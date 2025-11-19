@@ -10,6 +10,7 @@ const (
 	sdkGo         sdk = "go"
 	sdkPython     sdk = "python"
 	sdkTypescript sdk = "typescript"
+	sdkCsharp     sdk = "csharp"
 	sdkPHP        sdk = "php"
 	sdkElixir     sdk = "elixir"
 	sdkJava       sdk = "java"
@@ -21,6 +22,7 @@ var validInbuiltSDKs = []sdk{
 	sdkGo,
 	sdkPython,
 	sdkTypescript,
+	sdkCsharp,
 	sdkPHP,
 	sdkElixir,
 	sdkJava,

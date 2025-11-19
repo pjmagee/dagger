@@ -25,7 +25,7 @@ func Introspect(cmd *cobra.Command, args []string) error {
 	}
 	defer dag.Close()
 
-	var data introspection.Response
+	var data any
 	err = dag.Do(ctx, &dagger.Request{
 		Query: introspection.Query,
 	}, &dagger.Response{
@@ -34,14 +34,16 @@ func Introspect(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("introspection query: %w", err)
 	}
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal introspection json: %w", err)
+	if data != nil {
+		jsonData, err := json.MarshalIndent(data, "", "  ")
+		if err != nil {
+			return fmt.Errorf("marshal introspection json: %w", err)
+		}
+		if outputSchema != "" {
+			return os.WriteFile(outputSchema, jsonData, 0o644)
+		}
+		cmd.Println(string(jsonData))
 	}
-	if outputSchema != "" {
-		return os.WriteFile(outputSchema, jsonData, 0o644)
-	}
-	cmd.Println(string(jsonData))
 	return nil
 }
 

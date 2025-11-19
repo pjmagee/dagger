@@ -16,7 +16,6 @@ import (
 
 	"github.com/dagger/dagger/engine/slog"
 	"github.com/dagger/dagger/util/hashutil"
-	"github.com/dagger/dagger/util/parallel"
 
 	"dagger.io/dagger/telemetry"
 	"github.com/dagger/dagger/core"
@@ -741,38 +740,29 @@ func (s *moduleSourceSchema) loadBlueprintModule(
 		return fmt.Errorf("failed to get dag server: %w", err)
 	}
 
-	jobs := parallel.New().WithContextualTracer(true).WithReveal(false)
 	// Load blueprint
 	if src.ConfigBlueprint != nil {
-		jobs = jobs.WithJob("load blueprint: "+src.ConfigBlueprint.Source, func(ctx context.Context) error {
-			blueprint, err := core.ResolveDepToSource(ctx, bk, dag, src, src.ConfigBlueprint.Source, src.ConfigBlueprint.Pin, src.ConfigBlueprint.Name)
-			if err != nil {
-				return fmt.Errorf("failed to resolve blueprint to source: %w", err)
-			}
+		blueprint, err := core.ResolveDepToSource(ctx, bk, dag, src, src.ConfigBlueprint.Source, src.ConfigBlueprint.Pin, src.ConfigBlueprint.Name)
+		if err != nil {
+			return fmt.Errorf("failed to resolve blueprint to source: %w", err)
+		}
 
-			src.Blueprint = blueprint
-			return nil
-		})
+		src.Blueprint = blueprint
 	}
+
 	// Load toolchains array
 	if len(src.ConfigToolchains) > 0 {
-		jobs = jobs.WithJob("load toolchains", func(ctx context.Context) error {
-			src.Toolchains = make([]dagql.ObjectResult[*core.ModuleSource], len(src.ConfigToolchains))
-			toolchainJobs := parallel.New().WithReveal(false).WithContextualTracer(true)
-			for i, pcfg := range src.ConfigToolchains {
-				toolchainJobs = toolchainJobs.WithJob(pcfg.Name, func(ctx context.Context) error {
-					toolchain, err := core.ResolveDepToSource(ctx, bk, dag, src, pcfg.Source, pcfg.Pin, pcfg.Name)
-					if err != nil {
-						return fmt.Errorf("failed to resolve toolchain to source: %w", err)
-					}
-					src.Toolchains[i] = toolchain
-					return nil
-				})
+		src.Toolchains = make([]dagql.ObjectResult[*core.ModuleSource], len(src.ConfigToolchains))
+		for i, pcfg := range src.ConfigToolchains {
+			toolchain, err := core.ResolveDepToSource(ctx, bk, dag, src, pcfg.Source, pcfg.Pin, pcfg.Name)
+			if err != nil {
+				return fmt.Errorf("failed to resolve toolchain to source: %w", err)
 			}
-			return toolchainJobs.Run(ctx)
-		})
+			src.Toolchains[i] = toolchain
+		}
 	}
-	return jobs.Run(ctx)
+
+	return nil
 }
 
 type directoryAsModuleArgs struct {
@@ -2436,7 +2426,7 @@ func (s *moduleSourceSchema) runCodegen(
 	if len(generatedCode.VCSGeneratedPaths) > 0 {
 		gitAttrsPath := filepath.Join(srcInst.Self().SourceSubpath, ".gitattributes")
 		var gitAttrsContents []byte
-		gitAttrsFile, err := srcInst.Self().ContextDirectory.Self().FileLLB(ctx, gitAttrsPath)
+		gitAttrsFile, err := srcInst.Self().ContextDirectory.Self().File(ctx, gitAttrsPath)
 		if err == nil {
 			gitAttrsContents, err = gitAttrsFile.Contents(ctx, nil, nil)
 			if err != nil {
@@ -2482,7 +2472,7 @@ func (s *moduleSourceSchema) runCodegen(
 	if writeGitignore && len(generatedCode.VCSIgnoredPaths) > 0 {
 		gitIgnorePath := filepath.Join(srcInst.Self().SourceSubpath, ".gitignore")
 		var gitIgnoreContents []byte
-		gitIgnoreFile, err := srcInst.Self().ContextDirectory.Self().FileLLB(ctx, gitIgnorePath)
+		gitIgnoreFile, err := srcInst.Self().ContextDirectory.Self().File(ctx, gitIgnorePath)
 		if err == nil {
 			gitIgnoreContents, err = gitIgnoreFile.Contents(ctx, nil, nil)
 			if err != nil {
@@ -3226,7 +3216,7 @@ func addToolchainFieldsToObject(
 
 				constructor.Name = fieldName
 				constructor.OriginalName = originalName
-				constructor.Description = tcMod.Description
+				constructor.Description = fmt.Sprintf("toolchain '%s': %s", originalName, tcMod.Description)
 				constructor.ReturnType = obj
 
 				var err error

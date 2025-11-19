@@ -287,7 +287,7 @@ func (r *renderer) renderIDBase(out TermOutput, call *callpbv1.Call) {
 	}
 }
 
-func (r *renderer) renderCall( //nolint: gocyclo
+func (r *renderer) renderCall(
 	out TermOutput,
 	span *dagui.Span,
 	call *callpbv1.Call,
@@ -304,38 +304,19 @@ func (r *renderer) renderCall( //nolint: gocyclo
 	r.rendering[call.Digest] = true
 	defer func() { delete(r.rendering, call.Digest) }()
 
-	var specialTitle bool
-	var elideArgs map[string]struct{}
-	if r.Verbosity < dagui.ShowDigestsVerbosity {
-		// Use the DSL to render field calls
-		if title, elidedArgs, isSpecial := r.renderFieldCall(call, out, prefix, depth); isSpecial {
-			fmt.Fprint(out, title)
-			specialTitle = isSpecial
-			elideArgs = elidedArgs
+	if call.ReceiverDigest != "" {
+		if !chained {
+			r.renderIDBase(out, r.db.MustCall(call.ReceiverDigest))
 		}
+		fmt.Fprint(out, out.String("."))
 	}
 
-	if !specialTitle {
-		if call.ReceiverDigest != "" {
-			if !chained {
-				r.renderIDBase(out, r.db.MustCall(call.ReceiverDigest))
-			}
-			fmt.Fprint(out, out.String("."))
-		}
+	fmt.Fprint(out, out.String(call.Field).Bold())
 
-		fmt.Fprint(out, out.String(call.Field).Bold())
-	}
-
-	if len(call.Args) > len(elideArgs) {
-		if specialTitle {
-			fmt.Fprint(out, " ")
-		}
+	if len(call.Args) > 0 {
 		fmt.Fprint(out, out.String("("))
 		var needIndent bool
 		for _, arg := range call.Args {
-			if _, elided := elideArgs[arg.Name]; elided {
-				continue
-			}
 			if arg.GetValue().GetCallDigest() != "" {
 				needIndent = true
 				break
@@ -350,9 +331,6 @@ func (r *renderer) renderCall( //nolint: gocyclo
 			depth++
 			depth++
 			for _, arg := range call.Args {
-				if _, elided := elideArgs[arg.Name]; elided {
-					continue
-				}
 				fmt.Fprint(out, prefix)
 				indentLevel := depth
 				if row != nil {
@@ -394,15 +372,10 @@ func (r *renderer) renderCall( //nolint: gocyclo
 			r.indent(out, indentLevel)
 			depth-- //nolint:ineffassign
 		} else {
-			printed := 0
-			for _, arg := range call.Args {
-				if _, elided := elideArgs[arg.Name]; elided {
-					continue
-				}
-				if printed > 0 {
+			for i, arg := range call.Args {
+				if i > 0 {
 					fmt.Fprint(out, out.String(", "))
 				}
-				printed++
 				fmt.Fprintf(out, out.String("%s: ").Foreground(kwColor).String(), arg.GetName())
 				r.renderLiteral(out, arg.GetValue())
 			}
@@ -410,7 +383,7 @@ func (r *renderer) renderCall( //nolint: gocyclo
 		fmt.Fprint(out, out.String(")"))
 	}
 
-	if call.Type != nil && !specialTitle {
+	if call.Type != nil {
 		typeStr := out.String(": " + call.Type.ToAST().String()).Faint()
 		fmt.Fprint(out, typeStr)
 	}

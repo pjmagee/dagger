@@ -10,7 +10,7 @@ import {
   resolveTypeDef,
 } from "../typescript_module/index.js"
 import { DaggerArgument, DaggerArguments } from "./argument.js"
-import { CHECK_DECORATOR, FUNCTION_DECORATOR } from "./decorator.js"
+import { FUNCTION_DECORATOR } from "./decorator.js"
 import { Locatable } from "./locatable.js"
 import { References } from "./reference.js"
 
@@ -25,7 +25,6 @@ export class DaggerFunction extends Locatable {
   public arguments: DaggerArguments = {}
   public alias: string | undefined
   public cache: string | undefined
-  public isCheck: boolean = false
 
   private signature: ts.Signature
   private symbol: ts.Symbol
@@ -55,11 +54,6 @@ export class DaggerFunction extends Locatable {
         this.alias = functionArguments.alias
         this.cache = functionArguments.cache
       }
-    }
-
-    // Parse @check decorator
-    if (this.ast.isNodeDecoratedWith(this.node, CHECK_DECORATOR)) {
-      this.isCheck = true
     }
 
     for (const parameter of this.node.parameters) {

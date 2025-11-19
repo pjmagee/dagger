@@ -528,15 +528,14 @@ func changesetMerge(changesets ...*dagger.Changeset) *dagger.Changeset {
 }
 
 // Check if 'go mod tidy' is up-to-date
-// +check
 func (p *Go) CheckTidy(
 	ctx context.Context,
 	include []string, // +optional
 	exclude []string, // +optional
-) error {
+) (CheckStatus, error) {
 	modules, err := p.Modules(ctx, include, exclude)
 	if err != nil {
-		return err
+		return CheckCompleted, err
 	}
 	jobs := parallel.New()
 	for _, mod := range modules {
@@ -555,7 +554,7 @@ func (p *Go) CheckTidy(
 			return nil
 		})
 	}
-	return jobs.Run(ctx)
+	return CheckCompleted, jobs.Run(ctx)
 }
 
 func filterPath(path string, include, exclude []string) (bool, error) {
@@ -586,15 +585,14 @@ func filterPath(path string, include, exclude []string) (bool, error) {
 }
 
 // Lint the project
-// +check
 func (p *Go) Lint(
 	ctx context.Context,
 	include []string, //+optional
 	exclude []string, //+optional
-) error {
+) (CheckStatus, error) {
 	mods, err := p.Modules(ctx, include, exclude)
 	if err != nil {
-		return err
+		return CheckCompleted, err
 	}
 	// On a large repo this can run dozens of parallel golangci-lint jobs,
 	// which can lead to OOM or extreme CPU usage, so we limit parallelism
@@ -604,7 +602,7 @@ func (p *Go) Lint(
 			return p.LintModule(ctx, mod)
 		})
 	}
-	return jobs.Run(ctx)
+	return CheckCompleted, jobs.Run(ctx)
 }
 
 func (p *Go) LintModule(ctx context.Context, mod string) error {

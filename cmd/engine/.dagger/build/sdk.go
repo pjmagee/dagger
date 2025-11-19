@@ -76,7 +76,6 @@ func (build *Builder) pythonSDKContent(ctx context.Context) (*sdkContent, error)
 			WithWorkdir("/src").
 			WithDirectory("/usr/local/bin", rootfs.Directory("dist")).
 			WithMountedDirectory("", rootfs.Directory("codegen")).
-			WithEnvVariable("UV_NATIVE_TLS", "true").
 			WithExec([]string{
 				"uv", "export",
 				"--no-hashes",
@@ -246,6 +245,45 @@ func (build *Builder) goSDKContent(ctx context.Context) (*sdkContent, error) {
 		index:   index,
 		sdkDir:  sdkDir,
 		envName: distconsts.GoSDKManifestDigestEnvName,
+	}, nil
+}
+
+func (build *Builder) csharpSDKContent(ctx context.Context) (*sdkContent, error) {
+	rootfs := dag.Directory().WithDirectory("/", build.source.Directory("sdk/csharp"), dagger.DirectoryWithDirectoryOpts{
+		Include: []string{
+			"src/**/*.cs",
+			"src/**/*.csproj",
+			"LICENSE",
+			"README.md",
+			"runtime/",
+		},
+		Exclude: []string{
+			"src/**/obj/**",
+			"src/**/bin/**",
+		},
+	})
+
+	sdkCtrTarball := dag.Container().
+		WithRootfs(rootfs).
+		WithFile("/codegen", build.CodegenBinary()).
+		AsTarball(dagger.ContainerAsTarballOpts{
+			ForcedCompression: dagger.ImageLayerCompressionZstd,
+		})
+	sdkDir := unpackTar(sdkCtrTarball)
+
+	var index ocispecs.Index
+	indexContents, err := sdkDir.File("index.json").Contents(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal([]byte(indexContents), &index); err != nil {
+		return nil, err
+	}
+
+	return &sdkContent{
+		index:   index,
+		sdkDir:  sdkDir,
+		envName: distconsts.CsharpSDKManifestDigestEnvName,
 	}, nil
 }
 

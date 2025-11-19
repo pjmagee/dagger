@@ -301,14 +301,6 @@ var coreDirectives = []DirectiveSpec{
 			DirectiveLocationArgumentDefinition,
 		},
 	},
-	{
-		Name:        "check",
-		Description: FormatDescription(`Indicates that this function is a check.`),
-		Args:        NewInputSpecs(), // none
-		Locations: []DirectiveLocation{
-			DirectiveLocationFieldDefinition,
-		},
-	},
 }
 
 // Root returns the root object of the server. It is suitable for passing to
@@ -715,7 +707,7 @@ func (s *Server) Select(ctx context.Context, self AnyObjectResult, dest any, sel
 		var err error
 		res, err = self.Select(ctx, s, sel)
 		if err != nil {
-			return err
+			return fmt.Errorf("select: %w", err)
 		}
 
 		if res == nil {

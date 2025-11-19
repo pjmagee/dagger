@@ -3,7 +3,6 @@ export {
   connect,
   Context,
   func,
-  check,
   argument,
   object,
   field,
