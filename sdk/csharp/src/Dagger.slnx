@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Dagger.SDK\Dagger.SDK.csproj" />
+  <Project Path="Dagger.SDK.CodeGen\Dagger.SDK.CodeGen.csproj" />
+  <Project Path="Dagger.SDK.Tests\Dagger.SDK.Tests.csproj" />
+</Solution>
