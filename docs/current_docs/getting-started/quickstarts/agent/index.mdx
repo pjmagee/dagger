@@ -16,7 +16,7 @@ The agent will use an LLM of your choosing to solve a programming assignment. Th
 
 ## Requirements
 
-This quickstart will take you approximately 10 minutes to complete. You should be familiar with programming in Go, Python,  TypeScript, PHP, or Java.
+This quickstart will take you approximately 10 minutes to complete. You should be familiar with programming in C#, Go, Python, TypeScript, PHP, or Java.
 
 Before beginning, ensure that:
 - you have [installed the Dagger CLI](../../installation.mdx).
@@ -67,9 +67,14 @@ After successfully creating your organization, all future Dagger workflows can b
 
 In an empty directory, create a new Dagger module. This module will host your agent functions.
 
-You can write your module in Go, Python, TypeScript, PHP, or Java. Choose the SDK you are most comfortable with and run the command below to generate a new Dagger module:
+You can write your module in C#, Go, Python, TypeScript, PHP, or Java. Choose the SDK you are most comfortable with and run the command below to generate a new Dagger module:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```shell
+dagger init --sdk=csharp --name=coding-agent
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```shell
 dagger init --sdk=go --name=coding-agent

@@ -87,6 +87,26 @@ typing information at runtime to correctly report to the API.
 ```java file=./snippets/functions/arguments-string/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> GetUser(string gender)
+    {
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithExec(["apk", "add", "curl"])
+            .WithExec(["apk", "add", "jq"])
+            .WithExec(["sh", "-c", $"curl https://randomuser.me/api/?gender={gender} | jq .results[0].name"])
+            .StdoutAsync();
+    }
+}
+```
+</TabItem>
 </Tabs>
 
 Here is an example call for this Dagger Function:
@@ -167,11 +187,30 @@ Here is an example of a Dagger Function that accepts a Boolean argument:
 ```
 </TabItem>
 <TabItem value="java" label="Java">
-:::note
-You can either use the primitive `boolean` type or the boxed `java.lang.Boolean` type.
-:::
-
 ```java file=./snippets/functions/arguments-boolean/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> GetUser(bool french)
+    {
+        var uri = french 
+            ? "https://randomuser.me/api/?nat=fr" 
+            : "https://randomuser.me/api/";
+            
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithExec(["apk", "add", "curl", "jq"])
+            .WithExec(["sh", "-c", $"curl {uri} | jq .results[0].name"])
+            .Stdout();
+    }
+}
 ```
 </TabItem>
 </Tabs>
@@ -231,6 +270,22 @@ Here is an example of a Dagger function that accepts an integer argument:
 
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/arguments-return-values-integer/php/src/MyModule.php
+```
+</TabItem>
+
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public int AddInteger(int a, int b)
+    {
+        return a + b;
+    }
+}
 ```
 </TabItem>
 
@@ -304,6 +359,22 @@ The imported `float` type is a `number` underneath, so you can use it as you wou
 ```
 </TabItem>
 
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public float AddFloat(float a, float b)
+    {
+        return a + b;
+    }
+}
+```
+</TabItem>
+
 <TabItem value="java" label="Java">
 :::note
 You can either use the primitive `float` type or the boxed `java.lang.Float` type.
@@ -368,6 +439,26 @@ The PHP SDK needs the typing information at runtime to correctly report to the A
 ```php file=./snippets/functions/arguments-array/php/src/MyModule.php
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public string Hello(string[] names)
+    {
+        var message = "Hello";
+        if (names.Length > 0)
+        {
+            message += " " + string.Join(", ", names);
+        }
+        return message;
+    }
+}
+```
+</TabItem>
 <TabItem value="java" label="Java">
 :::note
 You can also use the `java.util.List` interface to represent a list of values.
@@ -428,6 +519,27 @@ Here's an example of a Dagger Function that accepts a `Directory` as argument. T
 </TabItem>
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/arguments-directory/php/src/MyModule.php
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> Tree(Directory src, string depth)
+    {
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithMountedDirectory("/mnt", src)
+            .WithWorkdir("/mnt")
+            .WithExec(["apk", "add", "tree"])
+            .WithExec(["tree", "-L", depth])
+            .Stdout();
+    }
+}
 ```
 </TabItem>
 <TabItem value="java" label="Java">
@@ -576,6 +688,25 @@ Here's an example of a Dagger Function that accepts a `File` as argument, reads 
 ```php file=./snippets/functions/arguments-file/php/src/MyModule.php
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> Grep(string pattern, File source)
+    {
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithMountedFile("/src", source)
+            .WithExec(["grep", pattern, "/src"])
+            .StdoutAsync();
+    }
+}
+```
+</TabItem>
 <TabItem value="java" label="Java">
 ```java file=./snippets/functions/arguments-file/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
 ```
@@ -651,6 +782,21 @@ Here is an example of a Dagger Function that accepts a container image reference
 </TabItem>
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/arguments-container/php/src/MyModule.php
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> Scan(Container ctr)
+    {
+        return await Dag.Trivy().ScanContainer(ctr);
+    }
+}
 ```
 </TabItem>
 <TabItem value="java" label="Java">
@@ -969,6 +1115,25 @@ To specify a function argument as optional, simply make it nullable. When using 
 ```php file=./snippets/functions/arguments-optional/php/src/MyModule.php
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public string Hello(string? name = null)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            name = "World";
+        }
+        return $"Hello, {name}!";
+    }
+}
+```
+</TabItem>
 <TabItem value="java" label="Java">
 :::note
 Because of the usage of `Optional`, primitive types can not be marked as optional. You have to use the boxed types like `Integer` or `Boolean`.
@@ -1054,6 +1219,21 @@ Here's an example of a Dagger Function with a default value for a string argumen
 </TabItem>
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/arguments-default-string/php/src/MyModule.php
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public string Hello(string name = "World")
+    {
+        return $"Hello, {name}!";
+    }
+}
 ```
 </TabItem>
 <TabItem value="java" label="Java">

@@ -245,6 +245,29 @@ To implement a pre-call filter in your Dagger Function, add an `ignore` paramete
 - Prefixing a path with `!` negates a previous ignore: the pattern `"!foo"` has no effect, since nothing is previously ignored, while the pattern `"**", "!foo"` excludes everything except `foo`.
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+Here's an example of a Dagger Function that excludes everything in a given directory except C# source code files:
+
+```cs
+using Dagger;
+using static Dag = Dagger.Client;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<Container> Foo([Ignore("*", "!**/*.cs", "!*.csproj")] Directory source)
+    {
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithDirectory("/src", source)
+            .SyncAsync();
+    }
+}
+```
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 Here's an example of a Dagger Function that excludes everything in a given directory except Go source code files:
@@ -295,6 +318,24 @@ Here's an example of a Dagger Function that excludes everything in a given direc
 Here are a few examples of useful patterns:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+// exclude C# tests and test data
+[Ignore("**/*Tests.cs", "**/TestData/**")]
+
+// exclude binaries
+[Ignore("bin", "obj")]
+
+// exclude Python dependencies
+[Ignore("**/.venv", "**/__pycache__")]
+
+// exclude Node.js dependencies
+[Ignore("**/node_modules")]
+
+// exclude Git metadata
+[Ignore(".git", "**/.gitignore")]
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 // exclude Go tests and test data
@@ -406,6 +447,40 @@ This is useful when working with directories that are modified "in place" by a D
 A good example of this is a multi-stage build. Imagine a Dagger Function that reads and builds an application from source, placing the compiled binaries in a new sub-directory (stage 1). Instead of then transferring everything to the final container image for distribution (stage 2), you could use a post-call filter to transfer only the compiled files.
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+To implement a post-call filter in your Dagger Function, use the `ContainerWithDirectoryOpts` class which supports `Include` and `Exclude` properties when working with `Directory` objects. Here's an example:
+
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public Container Foo(Directory source)
+    {
+        var builder = Dag.Container()
+            .From("golang:latest")
+            .WithDirectory("/src", source, new ContainerWithDirectoryOpts
+            {
+                Exclude = ["*.git", "internal"]
+            })
+            .WithWorkdir("/src/hello")
+            .WithExec(["go", "build", "-o", "hello.bin", "."]);
+
+        return Dag.Container()
+            .From("alpine:latest")
+            .WithDirectory("/app", builder.Directory("/src/hello"), new ContainerWithDirectoryOpts
+            {
+                Include = ["hello.bin"]
+            })
+            .WithEntrypoint(["/app/hello.bin"]);
+    }
+}
+```
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 To implement a post-call filter in your Dagger Function, use the `DirectoryWithDirectoryOpts` or `ContainerWithDirectoryOpts` structs, which support `Include` and `Exclude` patterns for `Directory` objects. Here's an example:
@@ -456,6 +531,33 @@ To implement a post-call filter in your Dagger Function, use the `Container.With
 Here are a few examples of useful patterns:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+// exclude all Markdown files
+var dirOpts = new ContainerWithDirectoryOpts
+{
+    Exclude = ["*.md*"]
+};
+
+// include only the build output directory
+var dirOpts = new ContainerWithDirectoryOpts
+{
+    Include = ["build"]
+};
+
+// include only ZIP files
+var dirOpts = new ContainerWithDirectoryOpts
+{
+    Include = ["*.zip"]
+};
+
+// exclude Git metadata
+var dirOpts = new ContainerWithDirectoryOpts
+{
+    Exclude = ["*.git"]
+};
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 // exclude all Markdown files
@@ -576,6 +678,22 @@ Both Dagger Cloud and the Dagger TUI provide detailed information on the pattern
 Another way to debug how directories are being filtered is to create a function that receives a `Directory` as input, and returns the same `Directory`:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public Directory Debug(
+        [Ignore("*", "!analytics")] Directory source)
+    {
+        return source;
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 func (m *MyModule) Debug(

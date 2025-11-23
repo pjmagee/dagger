@@ -65,6 +65,30 @@ Update the `src/main/java/io/dagger/modules/mymodule/MyModule.java` file with th
 Dagger Functions must be public. The function must be decorated with the `@Function` annotation
 and the class containing the functions must be decorated with the `@Object` annotation.
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+Update the `Main.cs` file with the following code:
+
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> GetUser()
+    {
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithExec(["apk", "add", "curl", "jq"])
+            .WithExec(["sh", "-c", "curl https://randomuser.me/api/ | jq .results[0].name"])
+            .StdoutAsync();
+    }
+}
+```
+
+Dagger Functions must be public and decorated with the `[Function]` attribute. The class must be decorated with `[DaggerObject]`.
+</TabItem>
 </Tabs>
 
 :::caution

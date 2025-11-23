@@ -29,6 +29,10 @@
       "source": "cmd/codegen"
     },
     {
+      "name": "csharp-sdk-dev",
+      "source": "sdk/csharp/dev"
+    },
+    {
       "name": "dagger-cli",
       "source": "cmd/dagger"
     },

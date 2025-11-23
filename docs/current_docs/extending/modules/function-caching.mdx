@@ -60,6 +60,23 @@ export class Tokens {
 }
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+using System.Security.Cryptography;
+
+[Object]
+public class Tokens
+{
+    [Function]
+    public string AlwaysCached()
+    {
+        // No Cache property -> defaults to the seven-day TTL.
+        return Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
+    }
+}
+```
+</TabItem>
 </Tabs>
 
 ### TTL caching
@@ -116,6 +133,22 @@ export class Tokens {
 }
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+using System.Security.Cryptography;
+
+[Object]
+public class Tokens
+{
+    [Function(Cache = "10s")]
+    public string ShortLived()
+    {
+        return Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
+    }
+}
+```
+</TabItem>
 </Tabs>
 
 ### Session caching
@@ -168,6 +201,22 @@ export class Tokens {
 }
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+using System.Security.Cryptography;
+
+[Object]
+public class Tokens
+{
+    [Function(Cache = "session")]
+    public string PerSession()
+    {
+        return Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
+    }
+}
+```
+</TabItem>
 </Tabs>
 
 ### Never cache
@@ -215,6 +264,22 @@ export class Tokens {
   async noCache(): Promise<string> {
     return crypto.randomBytes(8).toString("hex");
   }
+}
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+using System.Security.Cryptography;
+
+[Object]
+public class Tokens
+{
+    [Function(Cache = "never")]
+    public string NoCache()
+    {
+        return Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
+    }
 }
 ```
 </TabItem>

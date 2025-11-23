@@ -16,6 +16,24 @@ Dagger lets users drop in to an interactive shell when a workflow run fails, wit
 Here's an example of a workflow run failing, and Dagger opening an interactive terminal at the point of failure:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> Test()
+    {
+        return await Dag.Container()
+            .From("alpine")
+            .WithExec(["sh", "-c", "echo hello world; exit 1"])
+            .StdoutAsync();
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go file=./snippets/debugging-1/go/main.go
 ```
@@ -49,6 +67,36 @@ You can also set one or more explicit breakpoints in your workflow, which then s
 Here's another example, which opens an interactive terminal at two different points in a workflow run to inspect the built container:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> Build(Directory src)
+    {
+        var builder = Dag.Container()
+            .From("golang:latest")
+            .WithDirectory("/src", src)
+            .WithWorkdir("/src")
+            .WithExec(["go", "build", "-o", "myapp"]);
+
+        await builder.Terminal();
+
+        var prod = Dag.Container()
+            .From("alpine:latest")
+            .WithFile("/myapp", builder.File("/src/myapp"))
+            .WithEntrypoint(["/myapp"]);
+
+        await prod.Terminal();
+
+        return await prod.Publish("ttl.sh/myapp");
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go file=./snippets/debugging-2/go/main.go
 ```

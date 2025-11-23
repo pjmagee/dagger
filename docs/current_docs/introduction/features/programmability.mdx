@@ -18,6 +18,31 @@ Dagger Functions are the fundamental unit of computing in Dagger. Dagger Functio
 Here's an example of a Dagger Function that builds and containerizes a Go application:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public Container Build(Directory src)
+    {
+        var build = Dag.Container()
+            .From("golang:latest")
+            .WithDirectory("/src", src)
+            .WithWorkdir("/src")
+            .WithEnvVariable("CGO_ENABLED", "0")
+            .WithExec(["go", "build", "-o", "myapp"]);
+
+        return Dag.Container()
+            .From("alpine:latest")
+            .WithFile("/myapp", build.File("/src/myapp"))
+            .WithEntrypoint(["/myapp"]);
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go file=./snippets/programmability-1/go/main.go
 ```
@@ -64,6 +89,27 @@ Here's an example of calling the same Dagger Function again, but this time chain
 Here's the same Dagger Function again, modified to return the compiled binary as a just-in-time file. The file is then exported to the host via an additional, chained function call:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public File Build(Directory src)
+    {
+        return Dag.Container()
+            .From("golang:latest")
+            .WithDirectory("/src", src)
+            .WithWorkdir("/src")
+            .WithEnvVariable("CGO_ENABLED", "0")
+            .WithExec(["go", "build", "-o", "myapp"])
+            .File("/src/myapp");
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go file=./snippets/programmability-2/go/main.go
 ```

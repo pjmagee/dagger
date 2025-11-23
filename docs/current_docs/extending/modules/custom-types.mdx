@@ -41,6 +41,63 @@ that returns a custom `Organization` type, itself containing a collection of
 
 TypeScript has multiple ways to support complex data types. Use a `class` when you need methods and privacy, use `type` for plain data objects with only public fields.
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+Here is an example of a `github` Dagger module, with a function named `DaggerOrganization`
+that returns a custom `Organization` type, itself containing a collection of
+`Account` types:
+
+```cs
+[Object]
+public class MyModule
+{
+    [Function]
+    public Organization DaggerOrganization()
+    {
+        var url = "https://github.com/dagger";
+        return new Organization
+        {
+            Url = url,
+            Repositories = [Dag.Git($"{url}/dagger")],
+            Members = [
+                new Account { Username = "jane", Email = "jane@example.com" },
+                new Account { Username = "john", Email = "john@example.com" }
+            ]
+        };
+    }
+}
+
+[Object]
+public class Organization
+{
+    [Field]
+    public string Url { get; set; }
+    
+    [Field]
+    public GitRepository[] Repositories { get; set; }
+    
+    [Field]
+    public Account[] Members { get; set; }
+}
+
+[Object]
+public class Account
+{
+    [Field]
+    public string Username { get; set; }
+    
+    [Field]
+    public string Email { get; set; }
+    
+    [Function]
+    public string Url()
+    {
+        return $"https://github.com/{Username}";
+    }
+}
+```
+
+</TabItem>
 </Tabs>
 
 :::note

@@ -195,6 +195,34 @@ Here is an example of how a container running in a Dagger Function can access an
 ```
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> UserList(Service svc)
+    {
+        return await Dag.Container()
+            .From("mariadb:10.11.2")
+            .WithServiceBinding("db", svc)
+            .WithExec([
+                "/usr/bin/mysql",
+                "--user=root",
+                "--password=secret",
+                "--host=db",
+                "-e",
+                "SELECT Host, User FROM mysql.user"
+            ])
+            .StdoutAsync();
+    }
+}
+```
+
+</TabItem>
 </Tabs>
 
 Before calling this Dagger Function, use the following command to start a MariaDB database service on the host:
@@ -271,6 +299,43 @@ For example, you can now run two services that depend on each other, each using 
 ```
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<Service> Services()
+    {
+        var svcA = Dag.Container()
+            .From("nginx")
+            .WithExposedPort(80)
+            .AsService(new ContainerAsServiceOpts
+            {
+                Args = ["sh", "-c", "nginx & while true; do curl svcb:80 && sleep 1; done"]
+            })
+            .WithHostname("svca");
+        await svcA.Start();
+        
+        var svcB = Dag.Container()
+            .From("nginx")
+            .WithExposedPort(80)
+            .AsService(new ContainerAsServiceOpts
+            {
+                Args = ["sh", "-c", "nginx & while true; do curl svca:80 && sleep 1; done"]
+            })
+            .WithHostname("svcb");
+        await svcB.Start();
+        
+        return svcB;
+    }
+}
+```
+
+</TabItem>
 </Tabs>
 
 In this example, service A and service B are set up with custom hostnames `svca` and `svcb`, allowing each service to communicate with the other by hostname. This capability provides enhanced flexibility for managing service dependencies and interconnections within modular workflows, making it easier to handle complex setups in Dagger.
@@ -326,6 +391,14 @@ The following example demonstrates starting an HTTP service manually, retrieving
 <TabItem value="php" label="PHP">
 
 ```php file=./snippets/services/use-endpoint/php/src/MyModule.php
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/use-endpoint/csharp/Main.cs
+// TODO: Add actual C# implementation
 ```
 
 </TabItem>
@@ -385,6 +458,14 @@ Dagger cancels each service run after a 10 second grace period to avoid frequent
 <TabItem value="php" label="PHP">
 
 ```php file=./snippets/services/persist-service-state/php/src/MyModule.php
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/persist-service-state/csharp/Main.cs
+// TODO: Add actual C# implementation
 ```
 
 </TabItem>
@@ -460,6 +541,14 @@ The following example explicitly starts the Redis service and stops it at the en
 ```
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/start-stop-services/csharp/Main.cs
+// TODO: Add actual C# implementation
+```
+
+</TabItem>
 <TabItem value="java" label="Java">
 
 ```java file=./snippets/services/start-stop-services/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
@@ -496,6 +585,14 @@ The application used in this example is [Drupal](https://www.drupal.org/), a pop
 <TabItem value="php" label="PHP">
 
 ```php file=./snippets/services/test-against-db-service/php/src/MyModule.php
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/test-against-db-service/csharp/Main.cs
+// TODO: Add actual C# implementation
 ```
 
 </TabItem>
@@ -611,6 +708,22 @@ Here's what happens on the last line:
 1. Dagger runs the `ping` container with the `redis-srv` alias magically added to `/etc/hosts`.
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/service-lifecycle-1/csharp/Main.cs
+// TODO: Add actual C# implementation
+```
+
+Here's what happens on the last line:
+
+1. The client requests the `ping` container's stdout, which requires the container to run.
+1. Dagger sees that the `ping` container has a service binding, `redisSrv`.
+1. Dagger starts the `redisSrv` container, which recurses into this same process.
+1. Dagger waits for health checks to pass against `redisSrv`.
+1. Dagger runs the `ping` container with the `redis-srv` alias magically added to `/etc/hosts`.
+
+</TabItem>
 <TabItem value="java" label="Java">
 
 ```java file=./snippets/services/service-lifecycle-1/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
@@ -666,6 +779,14 @@ Here's a more detailed client-server example of running commands against a Redis
 ```
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/service-lifecycle-2/csharp/Main.cs
+// TODO: Add actual C# implementation
+```
+
+</TabItem>
 <TabItem value="java" label="Java">
 
 ```java file=./snippets/services/service-lifecycle-2/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
@@ -700,6 +821,14 @@ It would be better to chain both commands together, which ensures that the servi
 <TabItem value="php" label="PHP">
 
 ```php file=./snippets/services/service-lifecycle-3/php/src/MyModule.php
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+// Inline C# code - converted from file reference: ./snippets/services/service-lifecycle-3/csharp/Main.cs
+// TODO: Add actual C# implementation
 ```
 
 </TabItem>

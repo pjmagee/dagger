@@ -286,7 +286,7 @@ import io.dagger.module.annotation.Module;
 ```
 
 :::note
-By default, the description will be read from the JavaDoc documentation of the package, class or function. To define a different
+By default, the description will be read from the XML documentation of the class or function. To define a different
 description, use the `description` field in each `@Module`, `@Object` or `@Function` annotation.
 
 ```java
@@ -309,6 +309,77 @@ Name    Description
 build   Build container
 ```
 :::
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+The Dagger module's code in C# can be split into multiple files. A C# module has the following structure:
+
+```
+.
+├── dagger.json
+├── DaggerModule.csproj
+├── GlobalUsings.cs
+├── Main.cs
+└── Program.cs
+```
+
+You can create additional C# files alongside `Main.cs`:
+
+```cs
+// Main.cs
+[Object]
+public class MyModule
+{
+    [Function]
+    public Test Test()
+    {
+        return new Test();
+    }
+
+    [Function]
+    public Lint Lint()
+    {
+        return new Lint();
+    }
+}
+
+// Test.cs
+[Object]
+public class Test
+{
+    [Function]
+    public async Task<string> Run(Directory source)
+    {
+        return await Dag.Container()
+            .From("node:21")
+            .WithDirectory("/src", source)
+            .WithWorkdir("/src")
+            .WithExec(["npm", "test"])
+            .StdoutAsync();
+    }
+}
+
+// Lint.cs
+[Object]
+public class Lint
+{
+    [Function]
+    public async Task<string> Run(Directory source)
+    {
+        return await Dag.Container()
+            .From("node:21")
+            .WithDirectory("/src", source)
+            .WithWorkdir("/src")
+            .WithExec(["npm", "run", "lint"])
+            .StdoutAsync();
+    }
+}
+```
+
+:::note
+When you run `dagger functions`, you'll only see the functions from the main `MyModule` class (`test` and `lint`). The functions from the `Test` and `Lint` classes are accessible by chaining, for example: `dagger call test run --source=.` or `dagger call lint run --source=.`.
+:::
+
 </TabItem>
 </Tabs>
 
@@ -502,6 +573,20 @@ This means you have to keep the `pom.xml` file and especially the `maven-compile
 
 :::note
 Other build tools like Gradle might be supported in the future.
+:::
+</TabItem>
+<TabItem value="csharp" label="C#">
+Dagger modules in C# are built as DLLs using the .NET CLI. The runtime container builds the module code with:
+
+```shell
+# executed by the runtime build container
+dotnet build
+```
+
+The generated DLL is then executed by the runtime container.
+
+:::important
+This means you have to keep the `.csproj` file and SDK configurations.
 :::
 </TabItem>
 </Tabs>

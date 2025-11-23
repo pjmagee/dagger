@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the Dagger.SDK NuGet package -->
+    <!-- In production, this would be: <PackageReference Include="DaggerIO" Version="0.1.0" /> -->
+
+    <!-- For local development, reference the project directly -->
+    <ProjectReference Include="..\..\src\Dagger.SDK\Dagger.SDK.csproj" />
+  </ItemGroup>
+</Project>

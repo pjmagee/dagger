@@ -215,6 +215,7 @@ const config: Config = {
         "toml",
         "powershell",
         "java",
+        "csharp",
       ],
       theme: prismThemes.oneLight,
       darkTheme: prismThemes.oneDark,

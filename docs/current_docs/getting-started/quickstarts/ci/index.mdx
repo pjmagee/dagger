@@ -18,7 +18,7 @@ This quickstart will guide you through building a CI workflow for an application
 
 ## Requirements
 
-This quickstart will take you approximately 10 minutes to complete. You should be familiar with programming in Go, Python, TypeScript, PHP, or Java.
+This quickstart will take you approximately 10 minutes to complete. You should be familiar with programming in C#, Go, Python, TypeScript, PHP, or Java.
 
 Before beginning, ensure that:
 - you have [installed the Dagger CLI](../../installation.mdx).
@@ -74,7 +74,7 @@ After successfully creating your organization, all future Dagger workflows can b
 
 ## Initialize a Dagger module
 
-Bootstrap a new Dagger module in Go, Python, TypeScript, PHP, or Java by running `dagger init` in the application's root directory.
+Bootstrap a new Dagger module in C#, Go, Python, TypeScript, PHP, or Java by running `dagger init` in the application's root directory.
 
 <Tabs groupId="language" queryString="sdk">
 <TabItem value="go" label="Go">
@@ -109,6 +109,13 @@ dagger init --sdk=php --name=hello-dagger
 
 ```shell
 dagger init --sdk=java --name=hello-dagger
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```shell
+dagger init --sdk=csharp --name=hello-dagger
 ```
 
 </TabItem>
@@ -167,6 +174,60 @@ Replace the generated `.dagger/src/HelloDagger.php` file with the following code
 Replace the generated `.dagger/src/main/java/io/dagger/modules/hellodagger/HelloDagger.java` file with the following code, which adds four Dagger Functions to your Dagger module:
 
 ```java file=./snippets/java/src/main/java/io/dagger/modules/hellodagger/HelloDagger.java
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+Replace the generated `Main.cs` file with the following code, which adds four Dagger Functions to your Dagger module:
+
+```cs
+using Dagger;
+
+namespace DaggerModule;
+
+[Object]
+public class HelloDagger
+{
+    [Function]
+    public async Task<string> Publish(Directory source)
+    {
+        await Test(source);
+        return await Build(source)
+            .Publish($"ttl.sh/hello-dagger-{Guid.NewGuid():N}");
+    }
+
+    [Function]
+    public async Task<string> Test(Directory source)
+    {
+        return await BuildEnv(source)
+            .WithExec(["npm", "run", "test:unit", "run"])
+            .StdoutAsync();
+    }
+
+    [Function]
+    public Container Build(Directory source)
+    {
+        var build = BuildEnv(source)
+            .WithExec(["npm", "run", "build"])
+            .Directory("./dist");
+
+        return Dag.Container()
+            .From("nginx:1.25-alpine")
+            .WithDirectory("/usr/share/nginx/html", build)
+            .WithExposedPort(80);
+    }
+    
+    [Function]
+    public Container BuildEnv(Directory source)
+    {
+        return Dag.Container()
+            .From("node:21-slim")
+            .WithDirectory("/src", source)
+            .WithWorkdir("/src")
+            .WithExec(["npm", "install"]);
+    }
+}
 ```
 
 </TabItem>

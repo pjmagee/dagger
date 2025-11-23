@@ -22,6 +22,38 @@ Following the [GraphQL specification](https://spec.graphql.org/October2021/#Name
 Here is an example of a Dagger Function that takes two arguments: an image reference and a severity filter. The latter is defined as an enum named `Severity`:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+public enum Severity
+{
+    Unknown,
+    Low,
+    Medium,
+    High,
+    Critical
+}
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> Scan(string @ref, Severity severity)
+    {
+        return await Dag.Container()
+            .From(@ref)
+            .WithExec(["apk", "add", "curl"])
+            .WithExec(["sh", "-c", $"echo Severity: {severity}"])
+            .StdoutAsync();
+    }
+}
+```
+
+:::note
+C# enums are automatically recognized by Dagger. Enum values should follow PascalCase convention and will be converted to uppercase in the API.
+:::
+</TabItem>
 <TabItem value="go" label="Go">
 ```go file=./snippets/enums/go/main.go
 ```

@@ -86,6 +86,17 @@ public function greeting(): string
 ```
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs title="Main.cs"
+[Function]
+public async Task<string> Greeting()
+{
+    return await Dag.Hello().Hello();
+}
+```
+
+</TabItem>
 <TabItem value="java" label="Java">
 
 ```java
@@ -123,6 +134,12 @@ Next, create a new Dagger Function:
 </TabItem>
 <TabItem value="php" label="PHP">
 ```php file=./snippets/dependencies/chaining/php/src/MyModule.php
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+// Inline C# code - converted from file reference: ./snippets/dependencies/chaining/csharp/Main.cs
+// TODO: Add actual C# implementation
 ```
 </TabItem>
 <TabItem value="java" label="Java">
