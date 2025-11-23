@@ -67,6 +67,37 @@ Here's an example where one field is exposed as a Dagger Function, while the oth
 ```java file=./snippets/state-functions/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+:::warning
+Dagger only exposes public properties; private fields will not be exposed unless explicitly marked with `[Function]`.
+:::
+
+Here's an example where one property is exposed as a Dagger Function, while the other is not:
+
+```cs
+using Dagger;
+
+[DaggerObject]
+public class MyModule
+{
+    public string Greeting { get; set; } = "Hello";
+    private string Name { get; set; } = "World";
+
+    public MyModule(string greeting = "Hello", string name = "World")
+    {
+        Greeting = greeting;
+        Name = name;
+    }
+    [Function]
+    public string Message()
+    {
+        return $"{Greeting}, {Name}";
+    }
+}
+```
+
+</TabItem>
 </Tabs>
 
 Confirm with `dagger call --help` or `.help my-module` that only the `greeting` function was created, with `name` remaining only a constructor argument:

@@ -37,6 +37,21 @@ Here is an example of a Dagger Function that returns operating system informatio
 ```php file=./snippets/functions/arguments-container/php/src/MyModule.php
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public async Task<string> OsInfo(Container ctr)
+    {
+        return await ctr.WithExec(["uname", "-a"]).StdoutAsync();
+    }
+}
+```
+</TabItem>
 <TabItem value="java" label="Java">
 ```java file=./snippets/functions/arguments-container/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
 ```
@@ -91,6 +106,22 @@ Here is an example of a Dagger Function that returns the sum of two integers:
 
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/arguments-return-values-integer/php/src/MyModule.php
+```
+</TabItem>
+
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public int AddInteger(int a, int b)
+    {
+        return a + b;
+    }
+}
 ```
 </TabItem>
 
@@ -163,6 +194,22 @@ The imported `float` type is a `number` underneath, so you can return it as you 
 ```
 </TabItem>
 
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public float AddFloat(float a, float b)
+    {
+        return a + b;
+    }
+}
+```
+</TabItem>
+
 <TabItem value="java" label="Java">
 :::note
 You can either use the primitive `float` type or the boxed `java.lang.Float` type.
@@ -228,6 +275,29 @@ Here is an example of a Go builder Dagger Function that accepts a remote Git add
 ```php file=./snippets/functions/return-values-directory/php/src/MyModule.php
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public Directory GoBuilder(Directory src, string arch, string os)
+    {
+        return Dag.Container()
+            .From("golang:1.21")
+            .WithMountedDirectory("/src", src)
+            .WithWorkdir("/src")
+            .WithEnvVariable("GOARCH", arch)
+            .WithEnvVariable("GOOS", os)
+            .WithEnvVariable("CGO_ENABLED", "0")
+            .WithExec(["go", "build", "-o", "build/"])
+            .Directory("/src/build");
+    }
+}
+```
+</TabItem>
 <TabItem value="java" label="Java">
 ```java file=./snippets/functions/return-values-directory/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
 ```
@@ -290,6 +360,27 @@ Here is an example of a Dagger Function that accepts a filesystem path or remote
 </TabItem>
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/return-values-file/php/src/MyModule.php
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public File Archiver(Directory src)
+    {
+        return Dag.Container()
+            .From("alpine:latest")
+            .WithExec(["apk", "add", "zip"])
+            .WithMountedDirectory("/src", src)
+            .WithWorkdir("/src")
+            .WithExec(["sh", "-c", "zip -p -r out.zip *.*"])
+            .File("/src/out.zip");
+    }
+}
 ```
 </TabItem>
 <TabItem value="java" label="Java">
@@ -362,6 +453,26 @@ Here's an example of a Dagger Function that returns a base `alpine` container im
 ```php file=./snippets/functions/return-values-container/php/src/MyModule.php
 ```
 </TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    [Function]
+    public Container AlpineBuilder(string[] packages)
+    {
+        var ctr = Dag.Container().From("alpine:latest");
+        foreach (var pkg in packages)
+        {
+            ctr = ctr.WithExec(["apk", "add", pkg]);
+        }
+        return ctr;
+    }
+}
+```
+</TabItem>
 <TabItem value="java" label="Java">
 ```java file=./snippets/functions/return-values-container/java/src/main/java/io/dagger/modules/mymodule/MyModule.java
 ```
@@ -428,6 +539,38 @@ Here is an example module with support for function chaining:
 </TabItem>
 <TabItem value="php" label="PHP">
 ```php file=./snippets/functions/return-values-chaining/php/src/MyModule.php
+```
+</TabItem>
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class MyModule
+{
+    public string Greeting { get; set; }
+    public string Name { get; set; }
+
+    [Function]
+    public MyModule WithGreeting(string greeting)
+    {
+        Greeting = greeting;
+        return this;
+    }
+
+    [Function]
+    public MyModule WithName(string name)
+    {
+        Name = name;
+        return this;
+    }
+
+    [Function]
+    public string Message()
+    {
+        return $"{Greeting ?? "Hello"}, {Name ?? "World"}!";
+    }
+}
 ```
 </TabItem>
 <TabItem value="java" label="Java">

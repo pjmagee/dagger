@@ -30,6 +30,36 @@ If you plan to use constructor fields in other module functions, ensure that the
 Here is an example module with a custom constructor:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+```cs
+using Dagger;
+
+[DaggerObject]
+public class MyModule
+{
+    public string Greeting { get; set; }
+    public string Name { get; set; }
+
+    public MyModule(string greeting = "Hello", string name = "World")
+    {
+        Greeting = greeting;
+        Name = name;
+    }
+
+    [Function]
+    public string Message()
+    {
+        return $"{Greeting}, {Name}!";
+    }
+}
+```
+
+:::info
+In the C# SDK, public properties are automatically serialized. Use required or constructor parameters to ensure values are provided.
+:::
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 ```go file=./snippets/constructors/go/simple/main.go
@@ -110,6 +140,38 @@ Explicitly declare the type even when it can be inferred, so that the Dagger SDK
 Here is an example of a Dagger module with a default constructor argument of type `Container`:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+```cs
+using Dagger;
+
+[DaggerObject]
+public class MyModule
+{
+    public Container Ctr { get; set; }
+
+    public MyModule(Container? ctr = null)
+    {
+        Ctr = ctr ?? Dag.Container().From("alpine:latest");
+    }
+
+    [Function]
+    public async Task<string> Foo()
+    {
+        return await Ctr.WithExec(["echo", "foo"]).StdoutAsync();
+    }
+
+    [Function]
+    public async Task<string> Bar()
+    {
+        return await Ctr.WithExec(["echo", "bar"]).StdoutAsync();
+    }
+}
+```
+
+<PartialComplexConstructorOutput />
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 ```go file=./snippets/constructors/go/default-object/main.go

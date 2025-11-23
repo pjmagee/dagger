@@ -13,7 +13,7 @@ Dagger is a modular, composable platform designed to replace complex systems glu
 
 ## Requirements
 
-This quickstart will take you approximately 10 minutes to complete. You should be familiar with programming in Go, Python, TypeScript, PHP, or Java.
+This quickstart will take you approximately 10 minutes to complete. You should be familiar with programming in C#, Go, Python, TypeScript, PHP, or Java.
 
 Before beginning, ensure that:
 - you have [installed the Dagger CLI](../../installation.mdx).
@@ -124,6 +124,31 @@ As your workflows become more complex, you'll start wishing you could make them 
 Here's the previous example, rewritten as a Dagger Function:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class Basics
+{
+    [Function]
+    public async Task<string> Publish()
+    {
+        return await Dag.Container()
+            .From("alpine:latest")
+            .WithNewFile("/hi.txt", "Hello from Dagger!")
+            .WithEntrypoint(["cat", "/hi.txt"])
+            .Publish("ttl.sh/hello");
+    }
+}
+```
+
+To use this function, initialize a new Dagger module using the command below, and then update the auto-generated `Main.cs` file to include the function code above:
+
+```shell
+dagger init --sdk=csharp --name=basics
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 func (m *Basics) Publish(ctx context.Context) (string, error) {
@@ -228,6 +253,27 @@ When you create a custom Dagger Function and tell Dagger about it (by installing
 Function chaining works the same way, whether you're writing Dagger Function code using a Dagger SDK or using Dagger Shell. The following are equivalent:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+```cs
+[Function]
+public Container Base()
+{
+    return Dag.Container().From("cgr.dev/chainguard/wolfi-base");
+}
+[Function]
+public Container Build()
+{
+    return Base().WithExec(["apk", "add", "bash", "git"]);
+}
+[Function]
+public async Task<string> BuildAndPublish()
+{
+    return await Build().Publish("ttl.sh/bar");
+}
+```
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 ```go
@@ -400,6 +446,31 @@ Dagger Functions are just like regular functions: they accept [arguments](../../
 Here's a revision of the previous example which splits it into two smaller functions: one to build the container, and one to publish it. The builder function accepts the container image string as an argument and returns a `Container` type. The publisher function accepts a `Container` type as argument and returns the image identifier as a string.
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class Basics
+{
+    [Function]
+    public Container Build(string image = "alpine:latest")
+    {
+        return Dag.Container()
+            .From(image)
+            .WithNewFile("/hi.txt", "Hello from Dagger!");
+    }
+
+    [Function]
+    public async Task<string> Publish(string image = "alpine:latest")
+    {
+        return await Build(image)
+            .WithEntrypoint(["cat", "/hi.txt"])
+            .Publish("ttl.sh/hello");
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 func (m *Basics) Build(
@@ -518,6 +589,22 @@ Here's an example of installing and using two modules from the Daggerverse: a Wo
 Here's what it looks like in code:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class Basics
+{
+    [Function]
+    public async Task<string> Check()
+    {
+        var ctr = Dag.Wolfi().Container();
+        return await Dag.Trivy().ScanContainer(ctr);
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 func (m *Basics) Check(ctx context.Context) (string, error) {
@@ -588,6 +675,26 @@ One of Dagger's most powerful features is its ability to [cache data across work
 Taken together, these two types of caching significantly reduce execution times. Here's an example: a Dagger Function that creates a cache volume to store the packages installed by `apt`:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+```cs
+using Dagger;
+
+[Object]
+public class Basics
+{
+    [Function]
+    public Container Env()
+    {
+        var aptCache = Dag.CacheVolume("apt-cache");
+        return Dag.Container()
+            .From("debian:latest")
+            .WithMountedCache("/var/cache/apt/archives", aptCache)
+            .WithExec(["apt-get", "update"])
+            .WithExec(["apt-get", "install", "--yes", "maven", "mariadb-server"]);
+    }
+}
+```
+</TabItem>
 <TabItem value="go" label="Go">
 ```go
 func (m *Basics) Env(ctx context.Context) *dagger.Container {

@@ -52,6 +52,60 @@ The goal of this quickstart is to create an agent to interact with the existing 
 To give the agent these tools, create a Dagger submodule called `workspace`. This module will have Dagger Functions to list, read, and write files. The agent can use these Dagger Functions to interact with the codebase. By giving the agent a module with a limited set of tools, the agent has less room for error and will be more successful at its tasks.
 
 <Tabs groupId="language" queryString="sdk">
+    <TabItem value="csharp" label="C#">
+    Start by creating the submodule:
+
+    ```shell
+    dagger init --sdk=csharp .dagger/workspace
+    ```
+
+    Replace the `.dagger/workspace/Main.cs` file with the following contents:
+    ```cs
+using Dagger;
+
+namespace Workspace;
+
+[DaggerObject]
+public class Workspace
+{
+    public required Directory Source { get; set; }
+    [DaggerFunction]
+    public async Task<string> ReadFile(string path)
+    {
+        return await Source.File(path).ContentsAsync();
+    }
+    [DaggerFunction]
+    public Workspace WriteFile(string path, string contents)
+    {
+        Source = Source.WithNewFile(path, contents);
+        return this;
+    }
+    [DaggerFunction]
+    public async Task<string> ListFiles()
+    {
+        return await Dag.Container()
+            .From("alpine:3")
+            .WithDirectory("/src", Source)
+            .WithWorkdir("/src")
+            .WithExec(["tree", "/src"])
+            .Stdout();
+    }
+    [DaggerFunction]
+    public async Task<string> Test()
+    {
+        var nodeCache = Dag.CacheVolume("node");
+        return await Dag.Container()
+            .From("node:21-slim")
+            .WithDirectory("/src", Source)
+            .WithMountedCache("/root/.npm", nodeCache)
+            .WithWorkdir("/src")
+            .WithExec(["npm", "install"])
+            .WithExec(["npm", "run", "test:unit", "run"])
+            .StdoutAsync();
+    }
+}
+    ```
+    </TabItem>
     <TabItem value="go" label="Go">
     Start by creating the submodule:
 
@@ -143,6 +197,41 @@ dagger install ./.dagger/workspace
 This agent will make changes to the application and use the existing `test` function from the Daggerized CI pipeline to validate the changes.
 
 <Tabs groupId="language" queryString="sdk">
+    <TabItem value="csharp" label="C#">
+        Add the following new function to the main Dagger module in `.dagger/Main.cs`:
+
+        ```cs
+[Function]
+public async Task<Directory> Develop(string assignment, [DefaultPath("/")] Directory source)
+{
+    // Environment with agent inputs and outputs
+    var environment = Dag.Env()
+        .WithStringInput("assignment", assignment, "the assignment to complete")
+        .WithWorkspaceInput(
+            "workspace",
+            Dag.Workspace(source),
+            "the workspace with tools to edit and test code"
+        )
+        .WithWorkspaceOutput("completed", "the workspace with the completed assignment");
+
+    // Detailed prompt stored in markdown file
+    var promptFile = Dag.CurrentModule().Source().File("develop_prompt.md");
+
+    // Put it all together to form the agent
+    var work = Dag.Llm().WithEnv(environment).WithPromptFile(promptFile);
+
+    // Get the output from the agent
+    var completed = work.Env().Output("completed").AsWorkspace();
+    var completedDirectory = completed.Source.WithoutDirectory("node_modules");
+
+    // Make sure the tests really pass
+    await Test(completedDirectory);
+
+    // Return the Directory with the assignment completed
+    return completedDirectory;
+}
+        ```
+    </TabItem>
     <TabItem value="go" label="Go">
         Add the following new function to the main Dagger module in `.dagger/main.go`:
 
@@ -194,7 +283,7 @@ There are a few important points to note here:
 
 The final step is to add the prompt file. Create a file at `.dagger/develop_prompt.md` with the following content:
 
-```
+```markdown
 You are a developer on the HelloDagger Vue.js project.
 You will be given an assignment and the tools to complete the assignment.
 Your assignment is: $assignment
@@ -296,6 +385,43 @@ dagger install github.com/kpenfound/dag/github-issue@b316e472d3de5bb0e54fe3991be
 ```
 
 <Tabs groupId="language" queryString="sdk">
+    <TabItem value="csharp" label="C#">
+    Add the following new function to the main Dagger module in `.dagger/Main.cs`:
+
+    ```cs
+[Function]
+public async Task<string> DevelopIssue(
+    Secret githubToken,
+    int issueId,
+    string repository,
+    [DefaultPath("/")] Directory source)
+{
+    // Get the Github issue
+    var issueClient = Dag.GithubIssue(new GithubIssueOpts { Token = githubToken });
+    var issue = await issueClient.Read(repository, issueId);
+
+    // Get information from the Github issue
+    var assignment = await issue.Body();
+
+    // Solve the issue with the Develop agent
+    var feature = await Develop(assignment, source);
+
+    // Open a pull request
+    var title = await issue.Title();
+    var url = await issue.Url();
+    var body = $"{assignment}\n\nCloses {url}";
+    var pr = await issueClient.CreatePullRequest(repository, title, body, feature, "main");
+
+    return await pr.Url();
+}
+    ```
+
+    Be sure to add imports for the following:
+
+    ```cs
+using Dagger;
+    ```
+    </TabItem>
     <TabItem value="go" label="Go">
     Add the following new function to the main Dagger module in `.dagger/main.go`:
 

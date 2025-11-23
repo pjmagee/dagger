@@ -87,6 +87,47 @@ import io.dagger.module.annotation.Module;
 ```
 
 </TabItem>
+<TabItem value="csharp" label="C#">
+
+The following code snippet shows how to add documentation for:
+
+- The whole module
+- Function methods
+- Function arguments
+
+```cs
+using Dagger;
+
+/// <summary>
+/// A simple example module to say hello.
+/// 
+/// Further documentation for the module here.
+/// </summary>
+[Object]
+public class MyModule
+{
+    /// <summary>
+    /// Return a greeting.
+    /// </summary>
+    /// <param name="greeting">The greeting to display</param>
+    /// <param name="name">Who to greet</param>
+    [Function]
+    public string Hello(string greeting, string name)
+    {
+        return $"{greeting}, {name}!";
+    }
+
+    /// <summary>
+    /// Return a loud greeting.
+    /// </summary>
+    [Function]
+    public string LoudHello(string greeting, string name)
+    {
+        return Hello(greeting, name).ToUpper();
+    }
+}
+```
+</TabItem>
 </Tabs>
 
 Here is an example of the result from `dagger functions`:
@@ -141,6 +182,28 @@ The following code snippet shows how to add documentation for an object and its 
 <TabItem value="java" label="Java">
 
 ```java file=./snippets/documentation/java/object/MyModule.java
+```
+
+</TabItem>
+<TabItem value="csharp" label="C#">
+
+```cs
+/// <summary>
+/// Information about a GitHub repository
+/// </summary>
+[Object]
+public class GithubRepository
+{
+    /// <summary>
+    /// The repository URL
+    /// </summary>
+    public required string Url { get; set; }
+
+    /// <summary>
+    /// The repository description
+    /// </summary>
+    public required string Description { get; set; }
+}
 ```
 
 </TabItem>

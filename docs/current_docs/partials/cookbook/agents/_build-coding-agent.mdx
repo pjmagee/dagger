@@ -3,6 +3,33 @@
 The following Dagger Function creates a Golang coding agent. The input is a programming assignment and the output is a Go executable satisfying the assignment. The environment consists of a base `golang` container, which is given to an LLM with a prompt describing how it should perform the work.
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+```cs
+[Function]
+public Container GoProgram(string assignment)
+{
+    var environment = Dag.Env()
+        .WithStringInput("assignment", assignment, "the assignment to complete")
+        .WithContainerInput("builder", Dag.Container().From("golang").WithWorkdir("/app"), "a container to use for building Go code")
+        .WithContainerOutput("completed", "the completed assignment in the Golang container");
+        
+    return Dag.Llm()
+        .WithEnv(environment)
+        .WithPrompt(@"
+You are an expert Go programmer with an assignment to create a Go program
+Create files in the default directory in $builder
+Always build the code to make sure it is valid
+Do not stop until your assignment is completed and the code builds
+Your assignment is: $assignment
+        ")
+        .Env()
+        .Output("completed")
+        .AsContainer();
+}
+```
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 ```go file=../../../getting-started/quickstarts/agent/snippets/part1/go/main.go

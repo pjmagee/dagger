@@ -293,4 +293,43 @@ as sources to help for code completion. These configurations are necessary for t
 should not be modified (although you can freely update other parts of the `pom.xml` file).
 :::
 </TabItem>
+<TabItem value="csharp" label="C#">
+To get your IDE to recognize a Dagger C# module, ensure you have the .NET SDK installed and your IDE is configured for C# development.
+
+When you generate a Dagger module for the first time with `dagger init --sdk=csharp`, Dagger will create a module structure with:
+- A `.csproj` file for the module
+- `Main.cs` containing your module code
+- `GlobalUsings.cs` with common Dagger imports
+
+The C# SDK uses Roslyn source generators to create type-safe bindings from the Dagger GraphQL API.
+
+### Visual Studio
+
+1. Open the folder containing your Dagger module
+2. Visual Studio will automatically detect the `.csproj` file
+3. IntelliSense and code completion will work automatically for Dagger types
+
+### Visual Studio Code
+
+1. Install the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension
+2. Open the folder containing your Dagger module
+3. VS Code will automatically detect the C# project and provide IntelliSense
+
+### JetBrains Rider
+
+1. Open the folder containing your Dagger module
+2. Rider will automatically detect the `.csproj` file
+3. All IDE features will work automatically
+
+### Roslyn Analyzers
+
+The C# SDK includes Roslyn analyzers that provide:
+- Diagnostics for missing `[Object]` attributes on public classes
+- Suggestions for `[DefaultPath]` attributes on Directory parameters
+- Code fixes for common issues
+- Hints for best practices
+
+These analyzers will appear in your IDE's error list and provide quick fixes.
+
+</TabItem>
 </Tabs>

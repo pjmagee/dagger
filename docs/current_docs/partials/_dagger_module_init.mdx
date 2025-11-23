@@ -9,6 +9,27 @@ Running `dagger develop` regenerates the module's code based on dependencies, th
 The default template from `dagger develop` creates the following structure:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+```
+.
+├── LICENSE
+├── dagger.json
+├── MyModule.csproj
+├── Main.cs
+└── obj
+```
+
+In this structure:
+
+- `dagger.json` is the Dagger module configuration file.
+- `MyModule.csproj` manages the C# project and its dependencies.
+- `Main.cs` is where your Dagger module code goes. It contains sample code to help you get started.
+- `obj/` contains automatically-generated types and helpers needed to configure and run the module.
+
+For examples of modules written in C#, see [Daggerverse Modules in C#](https://daggerverse.dev/search?sdk=csharp).
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 ```

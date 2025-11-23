@@ -10,6 +10,23 @@ Dagger modules handle errors in the same way as the language they are written in
 Here is an example Dagger Function that performs division and throws an error if the denominator is zero:
 
 <Tabs groupId="language" queryString="sdk">
+<TabItem value="csharp" label="C#">
+
+```cs
+[Function]
+public int Divide(int a, int b)
+{
+    if (b == 0)
+    {
+        throw new ArgumentException("cannot divide by zero");
+    }
+    return a / b;
+}
+```
+
+Error handling in C# modules follows typical C# exception patterns with try-catch blocks and throwing exceptions.
+
+</TabItem>
 <TabItem value="go" label="Go">
 
 ```go file=./snippets/error-handling/go/main.go
