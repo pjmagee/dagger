@@ -163,7 +163,8 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 	// Ensure parent directory exists before creating the file/dir/symlink
 	// This is particularly important on Windows when dealing with nested paths
 	parentDir := filepath.Dir(newPath)
-	if parentDir != "." && parentDir != "/" {
+	// Check if we're not at the root - use cross-platform approach
+	if parentDir != newPath && parentDir != filepath.Dir(parentDir) {
 		if err := os.MkdirAll(parentDir, 0755); err != nil {
 			return errors.Wrapf(err, "failed to create parent directory %s", parentDir)
 		}

@@ -100,3 +100,47 @@ func TestDiskWriter_NestedDirectoriesOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, dirInfo.IsDir())
 }
+
+// TestDiskWriter_WindowsStylePaths tests that Windows-style paths with drive letters
+// are handled correctly
+func TestDiskWriter_WindowsStylePaths(t *testing.T) {
+	ctx := context.Background()
+	
+	tmpDir, err := os.MkdirTemp("", "diskwriter-test-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	dw, err := NewDiskWriter(ctx, tmpDir, DiskWriterOpt{
+		SyncDataCb: func(ctx context.Context, path string, wc io.WriteCloser) error {
+			_, err := wc.Write([]byte("test"))
+			return err
+		},
+	})
+	require.NoError(t, err)
+
+	// Test with a path that uses backslashes (Windows-style)
+	// Even on Unix, the filepath package should handle this
+	nestedPath := "my" + string(filepath.Separator) + "module" + string(filepath.Separator) + "file.txt"
+	
+	stat := &types.Stat{
+		Path:  nestedPath,
+		Mode:  uint32(0644),
+		Size_: 4,
+		Uid:   uint32(os.Getuid()),
+		Gid:   uint32(os.Getgid()),
+	}
+	
+	fi := &StatInfo{stat}
+	
+	err = dw.HandleChange(ChangeKindAdd, nestedPath, fi, nil)
+	require.NoError(t, err)
+	
+	err = dw.Wait(ctx)
+	require.NoError(t, err)
+
+	// Verify the file was created
+	createdFile := filepath.Join(tmpDir, nestedPath)
+	fileInfo, err := os.Stat(createdFile)
+	require.NoError(t, err)
+	require.False(t, fileInfo.IsDir())
+}
