@@ -118,9 +118,9 @@ func TestDiskWriter_WindowsStylePaths(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Test with a path that uses backslashes (Windows-style)
-	// Even on Unix, the filepath package should handle this
-	nestedPath := "my" + string(filepath.Separator) + "module" + string(filepath.Separator) + "file.txt"
+	// Test with a path that uses the system's path separator
+	// This ensures cross-platform compatibility
+	nestedPath := filepath.Join("my", "module", "file.txt")
 	
 	stat := &types.Stat{
 		Path:  nestedPath,
@@ -143,4 +143,48 @@ func TestDiskWriter_WindowsStylePaths(t *testing.T) {
 	fileInfo, err := os.Stat(createdFile)
 	require.NoError(t, err)
 	require.False(t, fileInfo.IsDir())
+}
+
+// TestDiskWriter_RootPath tests that root paths are handled correctly
+// without attempting to create the root directory itself
+func TestDiskWriter_RootPath(t *testing.T) {
+ctx := context.Background()
+
+tmpDir, err := os.MkdirTemp("", "diskwriter-test-*")
+require.NoError(t, err)
+defer os.RemoveAll(tmpDir)
+
+dw, err := NewDiskWriter(ctx, tmpDir, DiskWriterOpt{
+SyncDataCb: func(ctx context.Context, path string, wc io.WriteCloser) error {
+_, err := wc.Write([]byte("test"))
+return err
+},
+})
+require.NoError(t, err)
+
+// Test with a file at the root level (no nested directories)
+rootPath := "file.txt"
+
+stat := &types.Stat{
+Path:  rootPath,
+Mode:  uint32(0644),
+Size_: 4,
+Uid:   uint32(os.Getuid()),
+Gid:   uint32(os.Getgid()),
+}
+
+fi := &StatInfo{stat}
+
+// This should work without attempting to create parent directories
+err = dw.HandleChange(ChangeKindAdd, rootPath, fi, nil)
+require.NoError(t, err)
+
+err = dw.Wait(ctx)
+require.NoError(t, err)
+
+// Verify the file was created
+createdFile := filepath.Join(tmpDir, rootPath)
+fileInfo, err := os.Stat(createdFile)
+require.NoError(t, err)
+require.False(t, fileInfo.IsDir())
 }
