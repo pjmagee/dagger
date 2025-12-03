@@ -160,6 +160,15 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 		newPath = filepath.Join(filepath.Dir(destPath), ".tmp."+nextSuffix())
 	}
 
+	// Ensure parent directory exists before creating the file/dir/symlink
+	// This is particularly important on Windows when dealing with nested paths
+	parentDir := filepath.Dir(newPath)
+	if parentDir != "." && parentDir != "/" {
+		if err := os.MkdirAll(parentDir, 0755); err != nil {
+			return errors.Wrapf(err, "failed to create parent directory %s", parentDir)
+		}
+	}
+
 	isRegularFile := false
 
 	switch {
