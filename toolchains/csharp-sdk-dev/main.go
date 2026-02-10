@@ -67,7 +67,7 @@ func (m *CsharpSdkDev) Test(ctx context.Context) error {
 func (m *CsharpSdkDev) Lint(ctx context.Context) error {
 	_, err := m.Container.
 		WithExec([]string{"dotnet", "tool", "restore"}).
-		WithExec([]string{"dotnet", "csharpier", "--check", "."}).
+		WithExec([]string{"dotnet", "csharpier", "check", "."}).
 		Sync(ctx)
 	return err
 }
@@ -76,7 +76,7 @@ func (m *CsharpSdkDev) Lint(ctx context.Context) error {
 func (m *CsharpSdkDev) Format() *dagger.Directory {
 	return m.Container.
 		WithExec([]string{"dotnet", "tool", "restore"}).
-		WithExec([]string{"dotnet", "csharpier", "."}).
+		WithExec([]string{"dotnet", "csharpier", "format", "."}).
 		Directory("..")
 }
 

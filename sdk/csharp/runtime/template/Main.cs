@@ -38,6 +38,6 @@ public class DaggerModule
             .WithMountedDirectory("/mnt", directoryArg)
             .WithWorkdir("/mnt")
             .WithExec(new[] { "grep", "-R", pattern, "." })
-            .StdoutAsync();
+            .Stdout();
     }
 }

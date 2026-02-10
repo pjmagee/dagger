@@ -131,10 +131,9 @@ internal class DaggerInterfaceProxy<T> : DispatchProxy
             bool b => new BooleanValue(b),
             IId<Scalar> id => new IdValue<Scalar>(id),
             // Handle List<T> and arrays
-            System.Collections.IEnumerable enumerable
-                => new ListValue(
-                    enumerable.Cast<object>().Select(ConvertToGraphQLValue).ToList()
-                ),
+            System.Collections.IEnumerable enumerable => new ListValue(
+                enumerable.Cast<object>().Select(ConvertToGraphQLValue).ToList()
+            ),
             _ => throw new NotSupportedException(
                 $"Argument type {argValue.GetType().Name} not yet supported in interface proxy"
             ),

@@ -1,9 +1,7 @@
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading.Tasks;
-using VerifyCS = Dagger.SDK.Analyzers.Tests.Helpers.CSharpAnalyzerVerifier<
-    Dagger.SDK.Analyzers.ConstructorPropertyAnalyzer
->;
+using VerifyCS = Dagger.SDK.Analyzers.Tests.Helpers.CSharpAnalyzerVerifier<Dagger.SDK.Analyzers.ConstructorPropertyAnalyzer>;
 
 namespace Dagger.SDK.Analyzers.Tests.Analyzers;
 
@@ -13,7 +11,8 @@ public class ConstructorPropertyAnalyzerTests
     [TestMethod]
     public async Task Constructor_AssignsToPrivateField_ProducesDiagnostic()
     {
-        var test = @"
+        var test =
+            @"
 using Dagger;
 
 [Object]
@@ -30,7 +29,8 @@ public class Test
     public string GetName() => _name;
 }";
 
-        var expected = VerifyCS.Diagnostic(DiagnosticDescriptors.ConstructorParameterShouldMapToPublicProperty)
+        var expected = VerifyCS
+            .Diagnostic(DiagnosticDescriptors.ConstructorParameterShouldMapToPublicProperty)
             .WithLocation(0)
             .WithArguments("name");
 
@@ -40,7 +40,8 @@ public class Test
     [TestMethod]
     public async Task Constructor_AssignsToPublicProperty_NoDiagnostic()
     {
-        var test = @"
+        var test =
+            @"
 using Dagger;
 
 [Object]
@@ -63,7 +64,8 @@ public class Test
     [TestMethod]
     public async Task Constructor_NoAssignmentToField_NoDiagnostic()
     {
-        var test = @"
+        var test =
+            @"
 using Dagger;
 
 [Object]
@@ -86,7 +88,8 @@ public class Test
     [TestMethod]
     public async Task NonObjectClass_NoAnalysis()
     {
-        var test = @"
+        var test =
+            @"
 public class Test
 {
     private readonly string _name;
@@ -103,7 +106,8 @@ public class Test
     [TestMethod]
     public async Task Constructor_MultipleParameters_OnlyDiagnosticForPrivateFields()
     {
-        var test = @"
+        var test =
+            @"
 using Dagger;
 
 [Object]
@@ -122,7 +126,8 @@ public class Test
     public string GetName() => _name;
 }";
 
-        var expected = VerifyCS.Diagnostic(DiagnosticDescriptors.ConstructorParameterShouldMapToPublicProperty)
+        var expected = VerifyCS
+            .Diagnostic(DiagnosticDescriptors.ConstructorParameterShouldMapToPublicProperty)
             .WithLocation(0)
             .WithArguments("name");
 

@@ -197,7 +197,8 @@ public class DaggerObjectAnalyzer : DiagnosticAnalyzer
                             ?.Identifier.ToString()
                     )
                     .Where(name => name != null)
-                    .Select(name => name!) ?? []
+                    .Select(name => name!)
+                    ?? []
             );
 
             foreach (var parameter in methodDeclaration.ParameterList.Parameters)

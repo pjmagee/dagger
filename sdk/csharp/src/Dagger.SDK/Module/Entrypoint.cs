@@ -1006,11 +1006,7 @@ public static partial class Entrypoint
             );
             if (moduleInfo is null)
             {
-                await ReturnError(
-                    dag,
-                    fnCall,
-                    $"Module object '{parentName}' is not registered."
-                );
+                await ReturnError(dag, fnCall, $"Module object '{parentName}' is not registered.");
                 return 1;
             }
 

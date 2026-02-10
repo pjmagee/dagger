@@ -51,7 +51,7 @@ public static class QueryExecutor
         var jsonElement = await RequestAsync(client, queryBuilder, cancellationToken);
         jsonElement = TakeJsonElementUntilLast<T>(jsonElement, queryBuilder.Path);
         var propertyName = queryBuilder.Path.Last().Name;
-        
+
         // If jsonElement is already an array, we're selecting a property from each element
         // Otherwise, we need to get the property first (which should be an array)
         if (jsonElement.ValueKind == JsonValueKind.Array)
@@ -65,10 +65,7 @@ public static class QueryExecutor
         else
         {
             var arrayElement = jsonElement.GetProperty(propertyName);
-            return arrayElement
-                .EnumerateArray()
-                .Select(elem => elem.Deserialize<T>()!)
-                .ToArray();
+            return arrayElement.EnumerateArray().Select(elem => elem.Deserialize<T>()!).ToArray();
         }
     }
 

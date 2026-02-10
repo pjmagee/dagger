@@ -39,11 +39,7 @@ namespace Dagger;
 /// }
 /// </code>
 /// </example>
-[AttributeUsage(
-    AttributeTargets.Parameter,
-    AllowMultiple = false,
-    Inherited = false
-)]
+[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
 public sealed class NameAttribute : Attribute
 {
     /// <summary>

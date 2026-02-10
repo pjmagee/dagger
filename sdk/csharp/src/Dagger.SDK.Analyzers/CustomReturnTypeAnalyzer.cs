@@ -84,7 +84,7 @@ public class CustomReturnTypeAnalyzer : DiagnosticAnalyzer
         // Skip if from System or Dagger namespaces
         var namespaceName = returnType.ContainingNamespace?.ToDisplayString();
         if (
-            !string.IsNullOrEmpty(namespaceName)
+            namespaceName is not null
             && (namespaceName.StartsWith("System") || namespaceName.StartsWith("Dagger"))
         )
         {

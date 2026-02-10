@@ -83,7 +83,9 @@ public class AddXmlDocumentationCodeFixProvider : CodeFixProvider
         // Detect existing indentation from the member's leading whitespace
         var indentation = "";
         var leadingTriviaList = member.GetLeadingTrivia();
-        var lastWhitespace = leadingTriviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
+        var lastWhitespace = leadingTriviaList.LastOrDefault(t =>
+            t.IsKind(SyntaxKind.WhitespaceTrivia)
+        );
         if (lastWhitespace != default)
         {
             indentation = lastWhitespace.ToString();

@@ -156,7 +156,8 @@ public class CodeRenderer : ICodeRenderer
                     return new {{wrapperName}}(GqlClient.Query, Id().Sync());
                 }
                 """;
-            }) ?? Enumerable.Empty<string>();
+            })
+            ?? Enumerable.Empty<string>();
 
         var implementsIdInterface = "";
         if (type.Fields.Any(field => field.Name == "id"))
@@ -635,7 +636,8 @@ public class CodeRenderer : ICodeRenderer
                         var paramName = Formatter.FormatVarName(arg.Name);
                         return $"{paramType} {paramName}";
                     })
-                    .ToList() ?? new List<string>();
+                    .ToList()
+                ?? new List<string>();
 
             var paramList = string.Join(", ", parameters);
 

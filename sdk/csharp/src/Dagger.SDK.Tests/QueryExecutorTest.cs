@@ -44,10 +44,13 @@ public class QueryExecutorTest
         var queryBuilder = QueryBuilder
             .Builder()
             .Select("directory")
-            .Select("withNewFile", [
-                new Argument("path", new StringValue("/test.txt")),
-                new Argument("contents", new StringValue("hello"))
-            ])
+            .Select(
+                "withNewFile",
+                [
+                    new Argument("path", new StringValue("/test.txt")),
+                    new Argument("contents", new StringValue("hello")),
+                ]
+            )
             .Select("entries");
 
         var entries = await QueryExecutor.ExecuteListAsync<string>(gqlClient, queryBuilder);

@@ -42,10 +42,12 @@ public class ConstructorPropertyAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var hasObjectAttribute = classSymbol.GetAttributes().Any(attr =>
-            attr.AttributeClass?.Name == "ObjectAttribute"
-            && attr.AttributeClass.ContainingNamespace.ToDisplayString() == "Dagger"
-        );
+        var hasObjectAttribute = classSymbol
+            .GetAttributes()
+            .Any(attr =>
+                attr.AttributeClass?.Name == "ObjectAttribute"
+                && attr.AttributeClass.ContainingNamespace.ToDisplayString() == "Dagger"
+            );
 
         if (!hasObjectAttribute)
         {
@@ -53,7 +55,8 @@ public class ConstructorPropertyAnalyzer : DiagnosticAnalyzer
         }
 
         // Get all public properties in the class
-        var publicProperties = classSymbol.GetMembers()
+        var publicProperties = classSymbol
+            .GetMembers()
             .OfType<IPropertySymbol>()
             .Where(p => p.DeclaredAccessibility == Accessibility.Public && p.SetMethod != null)
             .ToImmutableArray();
@@ -107,7 +110,8 @@ public class ConstructorPropertyAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        var assignments = constructor.DescendantNodes()
+        var assignments = constructor
+            .DescendantNodes()
             .OfType<AssignmentExpressionSyntax>()
             .Where(assignment => assignment.IsKind(SyntaxKind.SimpleAssignmentExpression));
 
@@ -117,13 +121,17 @@ public class ConstructorPropertyAnalyzer : DiagnosticAnalyzer
             if (assignment.Right is IdentifierNameSyntax rightIdentifier)
             {
                 var rightSymbol = semanticModel.GetSymbolInfo(rightIdentifier).Symbol;
-                if (rightSymbol is IParameterSymbol paramSymbol
-                    && paramSymbol.Name == parameterName)
+                if (
+                    rightSymbol is IParameterSymbol paramSymbol
+                    && paramSymbol.Name == parameterName
+                )
                 {
                     // Check if left side is a field
                     var leftSymbol = semanticModel.GetSymbolInfo(assignment.Left).Symbol;
-                    if (leftSymbol is IFieldSymbol fieldSymbol
-                        && fieldSymbol.DeclaredAccessibility == Accessibility.Private)
+                    if (
+                        leftSymbol is IFieldSymbol fieldSymbol
+                        && fieldSymbol.DeclaredAccessibility == Accessibility.Private
+                    )
                     {
                         return true;
                     }

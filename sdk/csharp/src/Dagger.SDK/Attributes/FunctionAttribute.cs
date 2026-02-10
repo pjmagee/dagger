@@ -3,7 +3,11 @@ namespace Dagger;
 /// <summary>
 /// Marks a method or property as a Dagger function.
 /// </summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(
+    AttributeTargets.Method | AttributeTargets.Property,
+    AllowMultiple = false,
+    Inherited = false
+)]
 public class FunctionAttribute : Attribute
 {
     /// <summary>

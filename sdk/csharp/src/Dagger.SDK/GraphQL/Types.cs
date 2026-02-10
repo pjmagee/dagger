@@ -34,7 +34,7 @@ public class IdValue<TId>(IId<TId> value) : Value
         CancellationToken cancellationToken = default
     )
     {
-        var id = await value.IdAsync(cancellationToken).ConfigureAwait(false);
+        var id = await value.Id(cancellationToken).ConfigureAwait(false);
         return await new StringValue(id.Value).FormatAsync(cancellationToken).ConfigureAwait(false);
     }
 }

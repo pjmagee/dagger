@@ -48,7 +48,7 @@ public class AddEnumValueAttributeCodeFixTests
             VerifyCS
                 .Diagnostic(EnumMemberMissingEnumValueAttribute)
                 .WithLocation(1)
-                .WithArguments("Value2", "MyEnum")
+                .WithArguments("Value2", "MyEnum"),
         };
 
         await VerifyCS.VerifyCodeFixAsync(test, expected, fixedCode);
@@ -92,7 +92,7 @@ public class AddEnumValueAttributeCodeFixTests
             VerifyCS
                 .Diagnostic(EnumMemberMissingEnumValueAttribute)
                 .WithLocation(1)
-                .WithArguments("Value2", "MyEnum")
+                .WithArguments("Value2", "MyEnum"),
         };
 
         await VerifyCS.VerifyCodeFixAsync(test, expected, fixedCode);
@@ -134,7 +134,7 @@ public class AddEnumValueAttributeCodeFixTests
             VerifyCS
                 .Diagnostic(EnumMemberMissingEnumValueAttribute)
                 .WithLocation(1)
-                .WithArguments("Value2", "MyEnum")
+                .WithArguments("Value2", "MyEnum"),
         };
 
         await VerifyCS.VerifyCodeFixAsync(test, expected, fixedCode);
