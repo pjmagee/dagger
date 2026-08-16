@@ -142,7 +142,7 @@ func (l *Loader) namedSDK(
 		return l.loadBuiltinSDK(ctx, root, sdk, digest.Digest(os.Getenv(distconsts.PythonSDKManifestDigestEnvName)))
 	case sdkTypescript:
 		return l.loadBuiltinSDK(ctx, root, sdk, digest.Digest(os.Getenv(distconsts.TypescriptSDKManifestDigestEnvName)))
-	case sdkJava, sdkPHP, sdkElixir:
+	case sdkJava, sdkPHP, sdkElixir, sdkCSharp:
 		sdkMod, ok := workspaceModuleForBuiltinSDK(sdkNamedParsed, sdkSuffix)
 		if !ok {
 			return nil, errUnknownBuiltinSDK

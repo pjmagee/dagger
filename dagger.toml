@@ -12,6 +12,10 @@ legacy-default-path = true
 source = ".dagger/modules/cli-dev"
 legacy-default-path = true
 
+[modules.csharp-client]
+source = ".dagger/modules/csharp-client-dev"
+legacy-default-path = true
+
 [modules.dev]
 source = ".dagger/modules/dev"
 
@@ -178,6 +182,9 @@ path = "modules/wolfi"
 
 [[modules.dagger-go-sdk.as-sdk.modules]]
 path = ".dagger/modules/cli-dev"
+
+[[modules.dagger-go-sdk.as-sdk.modules]]
+path = ".dagger/modules/csharp-client-dev"
 
 [[modules.dagger-go-sdk.as-sdk.modules]]
 path = ".dagger/modules/docs-dev"
