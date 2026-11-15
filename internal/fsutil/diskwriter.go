@@ -160,6 +160,25 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 		newPath = filepath.Join(filepath.Dir(destPath), ".tmp."+nextSuffix())
 	}
 
+	// Ensure parent directory exists before creating the file/dir/symlink
+	// This is particularly important on Windows when dealing with nested paths
+	parentDir := filepath.Dir(newPath)
+	// Check if we're not at the root - use cross-platform approach
+	// Skip if parentDir is the current directory or if it's already at the root
+	if parentDir != "." && parentDir != newPath {
+		// Use VolumeName to properly detect root on Windows (e.g., "C:\")
+		// On Unix, VolumeName returns empty string, so we check for "/"
+		volumeName := filepath.VolumeName(parentDir)
+		isRoot := (volumeName != "" && parentDir == volumeName+string(filepath.Separator)) ||
+			(volumeName == "" && parentDir == string(filepath.Separator))
+		
+		if !isRoot {
+			if err := os.MkdirAll(parentDir, 0755); err != nil {
+				return errors.Wrapf(err, "failed to create parent directory %s", parentDir)
+			}
+		}
+	}
+
 	isRegularFile := false
 
 	switch {
